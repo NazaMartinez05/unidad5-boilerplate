@@ -1,43 +1,36 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
+/* Design tokens from the original menu.css, exposed as Tailwind utilities
+   (bg-surface, text-ink, border-line, bg-accent, desktop:..., etc.) */
 @theme {
-  /* Azules Institucionales Médicos */
-  --color-med-primary-950: #062644;
-  --color-med-primary-900: #0b385e;
-  --color-med-primary-800: #092f4f;
-  --color-med-primary-700: #0f4c81;
-  --color-med-primary-600: #0e5b8e;
-  --color-med-primary-500: #1d70b8;
-  --color-med-primary-200: #c2e0f8;
-  --color-med-primary-100: #e0f2fe;
-  --color-med-primary-50: #eef7fc;
+  --color-canvas: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-line: #e7eaf0;
+  --color-hover: #f2f4f8;
+  --color-ink: #43506b;
+  --color-ink-soft: #8a93a6;
+  --color-ink-strong: #1f2a44;
+  --color-accent: #2f6fed;
+  --color-accent-soft: #eaf1ff;
+  --color-danger: #e15b5b;
 
-  /* Superficies y Fondos */
-  --color-med-bg: #f4f7fb;
-  --color-med-card: #ffffff;
-  --color-med-border: #e2e8f0;
-  --color-med-border-subtle: #edf2f7;
+  /* Patient portal (MedPortal) */
+  --color-brand: #15497c;
+  --color-brand-dark: #0f3a63;
+  --color-portal: #f1f6fb;
+  --color-field: #eef5fc;
+  --color-field-line: #c7d7e9;
 
-  /* Tipografía */
-  --color-med-text-main: #0f2438;
-  --color-med-text-sub: #4b5e71;
-  --color-med-text-muted: #8c9dae;
+  --radius-nav: 10px;
 
-  /* Estados Funcionales */
-  --color-med-active-bg: #ddf8ef;
-  --color-med-active-text: #0e775a;
-  --color-med-leave-bg: #fef3c7;
-  --color-med-leave-text: #b45309;
-  --color-med-danger-bg: #fee2e2;
-  --color-med-danger-text: #dc2626;
+  --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  /* Below 900px the sidebar becomes an off-canvas panel */
+  --breakpoint-desktop: 56.25rem;
 }
 
 @layer base {
   body {
-    @apply m-0 text-sm sm:text-base bg-med-bg text-med-text-main font-sans antialiased;
-    min-height: 100dvh;
-  }
-  #root {
-    min-height: 100dvh;
+    @apply bg-canvas font-sans text-ink;
   }
 }
