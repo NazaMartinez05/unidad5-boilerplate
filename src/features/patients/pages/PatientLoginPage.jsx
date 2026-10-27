@@ -1,18 +1,21 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import PatientLoginForm from '../components/PatientLoginForm'
 import { loginPatient } from '../services/patientService'
+import { saveSession } from '../../../services/session'
+
 
 function PatientLoginPage() {
   const [errorMessage, setErrorMessage] = useState('')
+  const navigate = useNavigate()
 
   const handleLogin = async (credentials) => {
     setErrorMessage('')
     try {
       const { token, role } = await loginPatient(credentials)
-      localStorage.setItem('token', token)
-      localStorage.setItem('role', role)
-      // TODO: redirect to the patient home page once it exists
+      saveSession({ token, role, email: credentials.email })
+      navigate('/patient-doctor')
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, 'No se pudo iniciar sesión. Intente nuevamente más tarde.'))
     }

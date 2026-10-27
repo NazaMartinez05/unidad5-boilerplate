@@ -1,3 +1,8 @@
+const VARIANTS = {
+  primary: 'border border-brand bg-brand text-white hover:bg-brand-dark',
+  secondary: 'border border-brand bg-surface text-brand hover:bg-highlight',
+}
+
 function Button({ children, type = 'button', className = '', ...buttonProps }) {
   return (
     <button
