@@ -4,6 +4,7 @@ import PatientLayout from '../components/templates/PatientLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
 import DoctorsPage from '../features/doctors/pages/DoctorsPage'
 import DoctorFormPage from '../features/doctors/pages/DoctorFormPage'
+import DoctorAvailabilitiesPage from '../features/doctors/pages/DoctorAvailabilitiesPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
 
 export const router = createBrowserRouter([
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
       { path: 'doctors', element: <DoctorsPage /> },
       { path: 'doctors/new', element: <DoctorFormPage /> },
       { path: 'doctors/:id', element: <DoctorFormPage /> },
+      { path: 'doctors/:id/availabilities', element: <DoctorAvailabilitiesPage /> },
       // TODO: las secciones del menú que todavía no tienen página (doctors,
       // specialities, patients) caen en esta ruta comodín, que muestra
       // "Sección en construcción." sin que desaparezca el menú.

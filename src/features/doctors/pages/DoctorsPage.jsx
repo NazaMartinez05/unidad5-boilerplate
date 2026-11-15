@@ -140,7 +140,11 @@ function DoctorsPage() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex justify-end gap-1">
-                        <Link to={`/doctors/${doctor.id}/availabilities`} className={`${actionClass} text-accent hover:bg-accent-soft`}>
+                        <Link
+                         to={`/doctors/${doctor.id}/availabilities`}
+                         state={{ doctor }}
+                          className={`${actionClass} text-accent hover:bg-accent-soft`}
+                        >
                           Horarios
                         </Link>
                         <Link
