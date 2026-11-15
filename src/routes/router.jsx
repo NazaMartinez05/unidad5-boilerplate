@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
+import DoctorsPage from '../features/doctors/pages/DoctorsPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
 
 export const router = createBrowserRouter([
@@ -10,6 +11,7 @@ export const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'doctors', element: <DoctorsPage /> },
       // TODO: las secciones del menú que todavía no tienen página (doctors,
       // specialities, patients) caen en esta ruta comodín, que muestra
       // "Sección en construcción." sin que desaparezca el menú.
