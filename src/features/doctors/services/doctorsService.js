@@ -46,3 +46,13 @@ export async function updateAvailability(availability) {
   const response = await apiClient.put('/api/availabilities', availability)
   return response.data
 }
+
+
+// GET /api/specialties  (para llenar el desplegable del formulario)
+// Devuelve { pageSize, pageIndex, total, data: [{ id, name, description }] }
+export async function getSpecialities() {
+  const response = await apiClient.get('/api/specialties', {
+    params: { pageSize: 100, pageIndex: 1 },
+  })
+  return response.data
+}

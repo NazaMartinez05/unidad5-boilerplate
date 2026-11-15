@@ -143,8 +143,12 @@ function DoctorsPage() {
                         <Link to={`/doctors/${doctor.id}/availabilities`} className={`${actionClass} text-accent hover:bg-accent-soft`}>
                           Horarios
                         </Link>
-                        <Link to={`/doctors/${doctor.id}`} className={`${actionClass} text-accent hover:bg-accent-soft`}>
-                          Editar
+                        <Link
+                          to={`/doctors/${doctor.id}`}
+                          state={{ doctor }}
+                          className={`${actionClass} text-accent hover:bg-accent-soft`}
+                         >
+                            Editar
                         </Link>
                         <button
                           type="button"
