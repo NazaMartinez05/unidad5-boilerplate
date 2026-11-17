@@ -1,0 +1,60 @@
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const SHORT_DAY_NAMES = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']
+const MONTH_NAMES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+]
+
+export function addDays(date, days) {
+  const result = new Date(date)
+  result.setDate(result.getDate() + days)
+  return result
+}
+
+// Monday of the given week. On weekends, jumps to the next Monday.
+export function getWeekStart(date) {
+  const monday = new Date(date)
+  monday.setHours(0, 0, 0, 0)
+  const day = monday.getDay()
+  const offset = day === 0 ? 1 : day === 6 ? 2 : 1 - day
+  return addDays(monday, offset)
+}
+
+// Monday to Friday
+export function getWorkWeek(weekStart) {
+  return [0, 1, 2, 3, 4].map((offset) => addDays(weekStart, offset))
+}
+
+// "Lunes 26 - Viernes 30, Octubre" (or with both months when the week spans two)
+export function formatWeekRange(days) {
+  const first = days[0]
+  const last = days[days.length - 1]
+  const firstLabel = `${DAY_NAMES[first.getDay()]} ${first.getDate()}`
+  const lastLabel = `${DAY_NAMES[last.getDay()]} ${last.getDate()}`
+
+  if (first.getMonth() === last.getMonth()) {
+    return `${firstLabel} - ${lastLabel}, ${MONTH_NAMES[first.getMonth()]}`
+  }
+  return `${firstLabel} de ${MONTH_NAMES[first.getMonth()]} - ${lastLabel} de ${MONTH_NAMES[last.getMonth()]}`
+}
+
+// "Lunes 26 de Octubre"
+export function formatLongDate(date) {
+  return `${DAY_NAMES[date.getDay()]} ${date.getDate()} de ${MONTH_NAMES[date.getMonth()]}`
+}
+
+export function getShortDayName(date) {
+  return SHORT_DAY_NAMES[date.getDay()]
+}
+
+export function isSameDay(a, b) {
+  return a.toDateString() === b.toDateString()
+}
+
+// time: "HH:mm"
+export function isPastSlot(date, time) {
+  const [hours, minutes] = time.split(':').map(Number)
+  const slot = new Date(date)
+  slot.setHours(hours, minutes, 0, 0)
+  return slot <= new Date()
+}
