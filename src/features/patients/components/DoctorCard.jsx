@@ -1,7 +1,7 @@
 import Badge from '../../../components/atoms/Badge'
 import ProfileImage from '../../../components/atoms/ProfileImage'
 
-function DoctorCard(doctor) {
+function DoctorCard({ doctor }) {
   return (
     <article className="flex items-center gap-5 overflow-hidden rounded-lg border border-line bg-surface">
       <ProfileImage name={doctor?.name} className="size-24 text-2xl" />
