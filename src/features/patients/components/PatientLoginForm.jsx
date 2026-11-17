@@ -4,15 +4,11 @@ import Icon from '../../../components/atoms/Icon'
 import TextInput from '../../../components/atoms/TextInput'
 import FormField from '../../../components/molecules/FormField'
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/ //expresiones regulares para validar los formatos requeridos
 const DNI_PATTERN = /^\d{7,8}$/
 
 function PatientLoginForm({ onSubmit }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm()
+  const {register, handleSubmit, formState: {errors, isSubmitting}} = useForm()
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
