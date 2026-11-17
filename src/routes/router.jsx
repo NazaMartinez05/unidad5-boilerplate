@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
+import AppointmentSearchPage from '../features/appointments/pages/AppointmentSearchPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
 
 export const router = createBrowserRouter([
@@ -12,6 +13,8 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       // TODO: las secciones del menú que todavía no tienen página (doctors,
       // specialities, patients) caen en esta ruta comodín, que muestra
+        // Opción del menú "Patient Search" (to: '/patients')
+      { path: 'patients', element: <AppointmentSearchPage /> },
       // "Sección en construcción." sin que desaparezca el menú.
       //
       // Para agregar tu página (paso a paso en GUIA-AGREGAR-PAGINA.md):
