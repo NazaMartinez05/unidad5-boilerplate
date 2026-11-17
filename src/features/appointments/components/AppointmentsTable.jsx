@@ -1,7 +1,7 @@
-//import Badge from '../../../components/atoms/Badge'
+import Badge from '../../../components/atoms/Badge'
 import Icon from '../../../components/atoms/Icon'
-//import Pagination from '../../../components/molecules/Pagination'
-//import { formatShortDate } from '../../../utils/dates'
+import Pagination from '../../../components/molecules/Pagination'
+import { formatShortDate } from '../../../utils/dates'
 
 // Backend AppointmentStatus enum -> what we show in "Estado"
 const STATUSES = {
@@ -43,7 +43,7 @@ function AppointmentsTable({ appointments, total, page, totalPages, onPageChange
               return (
                 <tr key={appointment.appointmentId} className="transition-colors hover:bg-canvas">
                   <td className="px-6 py-3">
-                    {/* <p className="text-sm font-semibold text-ink-strong">{formatShortDate(appointment.date)}</p> */}
+                    <p className="text-sm font-semibold text-ink-strong">{formatShortDate(appointment.date)}</p>
                     {/* startTime comes as "HH:mm:ss" */}
                     <p className="text-xs text-ink-soft">{appointment.startTime.slice(0, 5)} HS</p>
                   </td>
@@ -66,9 +66,9 @@ function AppointmentsTable({ appointments, total, page, totalPages, onPageChange
                   </td>
 
                   <td className="px-6 py-3">
-                    {/* <Badge variant={status.variant} withDot>
+                    <Badge variant={status.variant} withDot>
                       {status.label}
-                    </Badge> */}
+                    </Badge>
                   </td>
                 </tr>
               )
@@ -81,7 +81,7 @@ function AppointmentsTable({ appointments, total, page, totalPages, onPageChange
         <p className="text-xs text-ink">
           Mostrando {appointments.length} de {total} registros
         </p>
-        {/* <Pagination page={page} totalPages={totalPages} onPageChange={onPageChange} /> */}
+        <Pagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
       </div>
     </section>
   )

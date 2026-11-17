@@ -5,7 +5,7 @@ import PatientAppLayout from '../components/templates/PatientAppLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
 import AppointmentSearchPage from '../features/appointments/pages/AppointmentSearchPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
-import PatientDoctorPage from '../features/patients/pages/PatientDoctorPage'
+//import PatientDoctorPage from '../features/patients/pages/PatientDoctorPage'
 
 export const router = createBrowserRouter([
   {
@@ -42,7 +42,7 @@ export const router = createBrowserRouter([
     // Si no hay sesión de paciente, PatientAppLayout redirige al login.
     element: <PatientAppLayout />,
     children: [
-      { path: 'patient-doctor', element: <PatientDoctorPage /> },
+      //{ path: 'patient-doctor', element: <PatientDoctorPage /> },
       // TODO: página "My Appointments" (turnos del paciente)
       { path: 'appointments', element: <p className="text-ink-soft">Sección en construcción.</p> },
     ],

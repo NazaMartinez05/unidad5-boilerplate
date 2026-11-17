@@ -1,11 +1,11 @@
 import { useForm, useWatch } from 'react-hook-form'
-//import Badge from '../../../components/atoms/Badge'
+import Badge from '../../../components/atoms/Badge'
 import Button from '../../../components/atoms/Button'
 import Icon from '../../../components/atoms/Icon'
-//import Select from '../../../components/atoms/Select'
+import Select from '../../../components/atoms/Select'
 import TextInput from '../../../components/atoms/TextInput'
 import FormField from '../../../components/molecules/FormField'
-//import { formatShortDate } from '../../../utils/dates'
+import { formatShortDate } from '../../../utils/dates'
 
 // One chip per filter in use, shown under the form
 function getFilterChips(filters, specialities, doctors) {
@@ -21,9 +21,9 @@ function getFilterChips(filters, specialities, doctors) {
     const doctor = doctors.find((item) => item.doctorId === filters.doctorId)
     chips.push(`Doctor: ${doctor.name}`)
   }
- /*  if (filters.date) {
+  if (filters.date) {
     chips.push(`Fecha: ${formatShortDate(filters.date)}`)
-  } */
+  }
   return chips
 }
 
@@ -82,16 +82,16 @@ function AppointmentFilters({ specialities, doctors, appliedFilters, lastUpdate,
         </FormField>
 
         <FormField label="Especialidad" htmlFor="specialityId">
-          {/* <Select
+          <Select
             id="specialityId"
             options={specialityOptions}
             // A new specialty may not include the chosen doctor, so we clear it
             {...register('specialityId', { onChange: () => setValue('doctorId', '') })}
-          /> */}
+          />
         </FormField>
 
         <FormField label="Doctor" htmlFor="doctorId">
-         {/*  <Select id="doctorId" options={doctorOptions} {...register('doctorId')} /> */}
+          <Select id="doctorId" options={doctorOptions} {...register('doctorId')} />
         </FormField>
 
         <FormField label="Fecha" htmlFor="date">
@@ -105,7 +105,7 @@ function AppointmentFilters({ specialities, doctors, appliedFilters, lastUpdate,
         </Button>
       </form>
 
-      {/* <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {chips.length > 0 ? (
           chips.map((chip) => (
             <Badge key={chip} variant="info">
@@ -117,7 +117,7 @@ function AppointmentFilters({ specialities, doctors, appliedFilters, lastUpdate,
             Sin filtros: se muestran todas las citas
           </Badge>
         )}
-      </div> */}
+      </div>
     </section>
   )
 }
