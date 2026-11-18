@@ -1,44 +1,80 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getApiErrorMessage } from '../../../services/apiClient'
 import AppointmentFilters from '../components/AppointmentFilters'
 import AppointmentsTable from '../components/AppointmentsTable'
-import { APPOINTMENTS, DOCTORS, SPECIALITIES } from '../services/appointmentMockData'
+import { DEFAULT_PAGE_SIZE, getDoctors, getSpecialities, searchAppointments } from '../services/appointmentService'
 
-const PAGE_SIZE = 5
 
-// Same names as the inputs of AppointmentFilters. '' = "no filter".
-const EMPTY_FILTERS = { patient: '', specialityId: '', doctorId: '', date: '' }
+const EMPTY_FILTERS = { dni: '', specialityId: '', doctorId: '', date: '' }
 
-// true when the appointment passes every filter in use
-function matchesFilters(appointment, filters) {
-  const patientText = filters.patient.trim().toLowerCase()
-  if (patientText) {
-    const matchesName = appointment.patient.fullName.toLowerCase().includes(patientText)
-    // Accepts the DNI with or without dots (40.123.456 or 40123456)
-    const matchesDni = String(appointment.patient.dni).includes(patientText.replaceAll('.', ''))
-    if (!matchesName && !matchesDni) return false
+function getErrorMessage(error, fallback) {
+  const status = error.response?.status
+  if (status === 401 || status === 403) {
+    return 'No tiene permisos para ver las citas. Inicie sesión como administrador.'
   }
-  if (filters.specialityId && appointment.doctor.speciality.specialityId !== filters.specialityId) return false
-  if (filters.doctorId && appointment.doctor.doctorId !== filters.doctorId) return false
-  // The date input and the backend both use "YYYY-MM-DD"
-  if (filters.date && appointment.date !== filters.date) return false
-  return true
+ return getApiErrorMessage(error, fallback)
 }
 
 function AppointmentSearchPage() {
+   const [specialities, setSpecialities] = useState([])
+  const [doctors, setDoctors] = useState([])
   const [filters, setFilters] = useState(EMPTY_FILTERS)
-  const [lastUpdate, setLastUpdate] = useState(new Date())
   const [page, setPage] = useState(1)
+    // key: the filters + page this result belongs to
+  const [result, setResult] = useState({ key: null, appointments: [], total: 0, error: '' })
+  const [catalogError, setCatalogError] = useState('')
+  const [lastUpdate, setLastUpdate] = useState(new Date())
 
-  const filteredAppointments = APPOINTMENTS.filter((appointment) => matchesFilters(appointment, filters))
-  const totalPages = Math.max(1, Math.ceil(filteredAppointments.length / PAGE_SIZE))
-  const pageAppointments = filteredAppointments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  // Filter combos: loaded once when entering the page
+  useEffect(() => {
+    Promise.all([getSpecialities(), getDoctors()])
+      .then(([specialityList, doctorList]) => {
+        setSpecialities(specialityList)
+        setDoctors(doctorList)
+      })
+      .catch((error) => {
+        setCatalogError(getErrorMessage(error, 'No se pudieron cargar las especialidades y los doctores.'))
+      })
+  }, [])
 
-  // TODO: call GET /api/appointments/search with these filters (see appointmentMockData.js)
+   // Table: reloaded every time the filters or the page change.
+  // With no filters (on entering the page) it shows every appointment.
+  const requestKey = `${page}|${JSON.stringify(filters)}`
+  useEffect(() => {
+    let ignore = false
+
+    searchAppointments(filters, page, DEFAULT_PAGE_SIZE)
+      .then((response) => {
+        if (ignore) return
+        setResult({ key: requestKey, ...response, error: '' })
+        setLastUpdate(new Date())
+      })
+      .catch((error) => {
+        if (ignore) return
+        setResult({
+          key: requestKey,
+          appointments: [],
+          total: 0,
+          error: getErrorMessage(error, 'No se pudieron cargar las citas.'),
+        })
+      })
+
+    // A slower old request must not overwrite the newest one
+    return () => {
+      ignore = true
+    }
+  }, [filters, page, requestKey])
+
+  // Loading until the result matches the current filters + page
+  const isLoading = result.key !== requestKey
+  const errorMessage = catalogError || (isLoading ? '' : result.error)
+  const totalPages = Math.max(1, Math.ceil(result.total / DEFAULT_PAGE_SIZE))
+
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters)
     setPage(1)
-    setLastUpdate(new Date())
   }
+
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
@@ -48,18 +84,24 @@ function AppointmentSearchPage() {
       </header>
 
       <AppointmentFilters
-        specialities={SPECIALITIES}
-        doctors={DOCTORS}
+        specialities={specialities}
+        doctors={doctors}
         appliedFilters={filters}
         lastUpdate={lastUpdate}
         onApply={handleApplyFilters}
       />
+      {errorMessage && (
+        <p role="alert" className="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+          {errorMessage}
+        </p>
+      )}
 
       <AppointmentsTable
-        appointments={pageAppointments}
-        total={filteredAppointments.length}
+        appointments={result.appointments}
+        total={result.total}
         page={page}
         totalPages={totalPages}
+        isLoading={isLoading}
         onPageChange={setPage}
       />
     </div>

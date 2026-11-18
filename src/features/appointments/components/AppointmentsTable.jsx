@@ -11,8 +11,10 @@ const STATUSES = {
   NoShow: { label: 'Ausente', variant: 'danger' },
 }
 
+const EMPTY = '—'
 // appointments: only the ones of the current page. total: all the filtered ones.
-function AppointmentsTable({ appointments, total, page, totalPages, onPageChange }) {
+// date, startTime, doctor and patient may be null (the backend does not send them yet).
+function AppointmentsTable({ appointments, total, page, totalPages, isLoading = false, onPageChange }) {
   return (
     <section className="overflow-hidden rounded-lg border border-line bg-surface">
       <h2 className="px-6 py-5 text-lg font-semibold text-brand">Registros de Citas</h2>
@@ -29,7 +31,15 @@ function AppointmentsTable({ appointments, total, page, totalPages, onPageChange
           </thead>
 
           <tbody className="divide-y divide-line">
-            {appointments.length === 0 && (
+           {isLoading && (
+              <tr>
+                <td colSpan={4} className="px-6 py-10 text-center text-sm text-ink-soft">
+                  Cargando citas...
+                </td>
+              </tr>
+            )}
+
+            {!isLoading && appointments.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-10 text-center text-sm text-ink-soft">
                   No se encontraron citas con los filtros aplicados.
@@ -37,15 +47,20 @@ function AppointmentsTable({ appointments, total, page, totalPages, onPageChange
               </tr>
             )}
 
-            {appointments.map((appointment) => {
-              const status = STATUSES[appointment.status]
+             {!isLoading && appointments.map((appointment) => {
+              const status = STATUSES[appointment.status] ?? { label: appointment.status ?? EMPTY, variant: 'neutral' }
+              const { doctor, patient } = appointment
 
               return (
                 <tr key={appointment.appointmentId} className="transition-colors hover:bg-canvas">
                   <td className="px-6 py-3">
-                    <p className="text-sm font-semibold text-ink-strong">{formatShortDate(appointment.date)}</p>
+                       <p className="text-sm font-semibold text-ink-strong">
+                      {appointment.date ? formatShortDate(appointment.date) : EMPTY}
+                    </p>
                     {/* startTime comes as "HH:mm:ss" */}
-                    <p className="text-xs text-ink-soft">{appointment.startTime.slice(0, 5)} HS</p>
+                     {appointment.startTime && (
+                      <p className="text-xs text-ink-soft">{appointment.startTime.slice(0, 5)} HS</p>
+                    )}
                   </td>
 
                   <td className="px-6 py-3">
@@ -54,15 +69,17 @@ function AppointmentsTable({ appointments, total, page, totalPages, onPageChange
                         <Icon name="stethoscope" size={16} />
                       </span>
                       <div className="leading-tight">
-                        <p className="text-sm font-semibold text-ink-strong">{appointment.doctor.speciality.name}</p>
-                        <p className="text-xs text-ink-soft">{appointment.doctor.name}</p>
+                        <p className="text-sm font-semibold text-ink-strong">{doctor?.speciality?.name ?? EMPTY}</p>
+                        <p className="text-xs text-ink-soft">{doctor?.name ?? ''}</p>
                       </div>
                     </div>
                   </td>
 
                   <td className="px-6 py-3">
-                    <p className="text-sm font-semibold text-ink-strong">{appointment.patient.fullName}</p>
-                    <p className="text-xs text-ink-soft">DNI: {appointment.patient.dni.toLocaleString('es-AR')}</p>
+                  <p className="text-sm font-semibold text-ink-strong">{patient?.fullName ?? EMPTY}</p>
+                    {patient?.dni && (
+                      <p className="text-xs text-ink-soft">DNI: {Number(patient.dni).toLocaleString('es-AR')}</p>
+                    )}
                   </td>
 
                   <td className="px-6 py-3">
@@ -79,7 +96,7 @@ function AppointmentsTable({ appointments, total, page, totalPages, onPageChange
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-highlight-line bg-highlight px-6 py-3">
         <p className="text-xs text-ink">
-          Mostrando {appointments.length} de {total} registros
+          Mostrando {isLoading ? 0 : appointments.length} de {total} registros
         </p>
         <Pagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
       </div>

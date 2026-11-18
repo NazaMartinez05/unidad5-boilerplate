@@ -10,16 +10,16 @@ import { formatShortDate } from '../../../utils/dates'
 // One chip per filter in use, shown under the form
 function getFilterChips(filters, specialities, doctors) {
   const chips = []
-  if (filters.patient.trim()) {
-    chips.push(`Paciente: ${filters.patient.trim()}`)
+  if (filters.dni) {
+    chips.push(`DNI: ${filters.dni}`)
   }
   if (filters.specialityId) {
     const speciality = specialities.find((item) => item.specialityId === filters.specialityId)
-    chips.push(`Especialidad: ${speciality.name}`)
+    if (speciality) chips.push(`Especialidad: ${speciality.name}`)
   }
   if (filters.doctorId) {
     const doctor = doctors.find((item) => item.doctorId === filters.doctorId)
-    chips.push(`Doctor: ${doctor.name}`)
+    if (doctor) chips.push(`Doctor: ${doctor.name}`)
   }
   if (filters.date) {
     chips.push(`Fecha: ${formatShortDate(filters.date)}`)
@@ -69,14 +69,17 @@ function AppointmentFilters({ specialities, doctors, appliedFilters, lastUpdate,
         noValidate
         className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-[1.4fr_1fr_1fr_1fr_auto]"
       >
-        <FormField label="Nombre o DNI del Paciente" htmlFor="patient" error={errors.patient?.message}>
+        <FormField label="DNI del Paciente" htmlFor="dni" error={errors.dni?.message}>
           <TextInput
-            id="patient"
+            id="dni"
             icon="search"
-            placeholder="Ej: Juan Pérez o 40123456"
-            hasError={!!errors.patient}
-            {...register('patient', {
-              minLength: { value: 3, message: 'Ingrese al menos 3 caracteres' },
+             inputMode="numeric"
+            placeholder="Ej: 40123456"
+            hasError={!!errors.dni}
+            {...register('dni', {
+              // Accepts the DNI with or without dots (40.123.456 or 40123456)
+              setValueAs: (value) => value.replaceAll('.', '').trim(),
+              pattern: { value: /^\d{7,8}$/, message: 'El DNI debe tener 7 u 8 números' },
             })}
           />
         </FormField>
