@@ -4,7 +4,7 @@ import Icon from '../atoms/Icon'
 import { getSession } from '../../services/session'
 
 const LINKS = [
-  { to: '/find-doctors', label: 'Find Doctors' },
+  { to: '/patient-doctor', label: 'Find Doctors' },
   { to: '/appointments', label: 'My Appointments' },
 ]
 

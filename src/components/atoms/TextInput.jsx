@@ -1,7 +1,13 @@
 import Icon from './Icon'
 
-// Receives the props from react-hook-form's register() (including ref)
-function TextInput({ icon, hasError = false, ...inputProps }) {
+const TONES = {
+  field: 'bg-field',
+  plain: 'bg-surface',
+}
+
+// Receives the props from react-hook-form's register() (including ref).
+// "trailing" renders an element at the right edge (e.g. a show/hide button).
+function TextInput({ icon, trailing, tone = 'field', hasError = false, ...inputProps }) {
   return (
     <div className="relative">
       {icon && (
@@ -12,14 +18,15 @@ function TextInput({ icon, hasError = false, ...inputProps }) {
       <input
         {...inputProps}
         aria-invalid={hasError}
-        className={`w-full rounded-md border bg-field py-2.5 pr-3 text-sm text-ink-strong outline-none placeholder:text-ink-soft focus:ring-2 ${
-          icon ? 'pl-10' : 'pl-3'
-        } ${
+        className={`w-full rounded-md border py-2.5 text-sm text-ink-strong outline-none placeholder:text-ink-soft focus:ring-2 ${
+          TONES[tone]
+        } ${icon ? 'pl-10' : 'pl-3'} ${trailing ? 'pr-10' : 'pr-3'} ${
           hasError
             ? 'border-danger focus:ring-danger/20'
             : 'border-field-line focus:border-brand focus:ring-brand/20'
         }`}
       />
+      {trailing && <span className="absolute inset-y-0 right-2 flex items-center">{trailing}</span>}
     </div>
   )
 }

@@ -4,7 +4,7 @@ import UserCard from '../molecules/UserCard'
 import Icon from '../atoms/Icon'
 
 const NAV_ITEMS = [
-  { to: '/', icon: 'dashboard', label: 'Panel de administración' },
+  { to: '/dashboard', icon: 'dashboard', label: 'Panel de administración' },
   { to: '/doctors', icon: 'doctors', label: 'Doctors' },
   { to: '/specialities', icon: 'specialities', label: 'Specialties' },
   { to: '/patients', icon: 'patients', label: 'Patient Search' },

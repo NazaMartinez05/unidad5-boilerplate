@@ -6,6 +6,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    // Open the browser on the patient login when the dev server starts
+    open: '/patients/login',
     // In development, forward /api calls to the backend (TPI-DSW-2026).
     // The browser sees the same origin, so the backend CORS list is not involved.
     proxy: {

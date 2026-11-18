@@ -1,10 +1,15 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import Icon from '../../../components/atoms/Icon'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import PatientLoginForm from '../components/PatientLoginForm'
 import { loginPatient } from '../services/patientService'
 import { saveSession } from '../../../services/session'
 
+const TEST_CREDENTIALS = {
+  email: 'paciente@medportal.com',
+  password: 'paciente123',
+}
 
 function PatientLoginPage() {
   const [errorMessage, setErrorMessage] = useState('')
@@ -21,31 +26,37 @@ function PatientLoginPage() {
     }
   }
 
-  return (
-    <section className="w-full max-w-sm rounded-lg border border-line bg-surface px-6 py-8 shadow-[0_4px_16px_rgba(15,23,42,0.08)]">
-      <div className="mb-6 text-center">
-        <p className="mb-3 text-lg font-bold text-brand">MedPortal</p>
-        <h1 className="mb-2 text-xl font-semibold text-ink-strong">Acceso al Paciente</h1>
-        <p className="text-sm text-ink">
-          Ingrese sus credenciales de identificación para continuar.
+  return(
+    <div className="flex w-full max-w-md flex-col items-center">
+      <span aria-hidden="true" className="mb-3 flex size-12 items-center justify-center rounded-xl bg-surface text-navy shadow-md">
+        <Icon name="shieldCheck" size={24} strokeWidth={2} />
+      </span>
+      <p className="mb-8 text-2xl font-semibold text-white">MedPortal</p>
+      <section className="w-full rounded-2xl bg-surface px-6 py-7 shadow-[0_20px_40px_rgba(0,0,0,0.25)] sm:px-7">
+        <h1 className="text-xl font-bold text-navy">Portal del Paciente</h1>
+        <p className="mt-1 mb-6 text-xs text-ink-soft">
+          Inicia sesión para reservar y consultar tus turnos médicos
         </p>
-      </div>
+        {errorMessage && (
+          <p role="alert" className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+            {errorMessage}
+          </p>
+        )}
 
-      {errorMessage && (
-        <p role="alert" className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {errorMessage}
-        </p>
-      )}
+        <PatientLoginForm onSubmit={handleLogin} />
 
-      <PatientLoginForm onSubmit={handleLogin} />
-
-      <div className="mt-6 border-t border-line pt-5 text-center">
-        <p className="mb-3 text-sm text-ink">¿No tiene una cuenta o tiene problemas para acceder?</p>
-        <a href="#" className="text-sm font-semibold text-brand hover:underline">
-          Contactar con soporte técnico
-        </a>
-      </div>
-    </section>
+        <div className="mt-4 rounded-md border border-field-line bg-field px-3 py-2.5 text-center text-xs text-ink">
+          <p className="font-semibold text-ink-strong">Credenciales de prueba:</p>
+          <p className="mt-0.5">
+            Email: <code className="font-mono">{TEST_CREDENTIALS.email}</code> | Clave:{' '}
+            <code className="font-mono">{TEST_CREDENTIALS.password}</code>
+          </p>
+        </div>
+      </section>
+      <Link to="/dashboard" className="mt-6 text-xs text-white/70 hover:text-white hover:underline">
+        ¿Es personal administrativo o médico? Ingrese aquí →
+      </Link>
+    </div>
   )
 }
 

@@ -1,17 +1,20 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
 import PatientAppLayout from '../components/templates/PatientAppLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
-import PatientDoctorPage from '../features/patients/pages/PatientDoctorPage'
+import PatientCheckDoctor from '../features/patients/pages/PatientCheckDoctor'
+import PatientAppointmentPage from '../features/patients/pages/PatientAppointmentPage'
 
 export const router = createBrowserRouter([
+  // Main URL of the app: always land on the patient login
+  { path: '/', element: <Navigate to="/patients/login" replace /> },
   {
-    path: '/',
+     // Panel de administración (menú lateral)
     element: <AdminLayout />,
     children: [
-      { index: true, element: <DashboardPage /> },
+      { path: 'dashboard', element: <DashboardPage /> },
       // TODO: las secciones del menú que todavía no tienen página (doctors,
       // specialities, patients) caen en esta ruta comodín, que muestra
       // "Sección en construcción." sin que desaparezca el menú.
@@ -39,9 +42,9 @@ export const router = createBrowserRouter([
     // Si no hay sesión de paciente, PatientAppLayout redirige al login.
     element: <PatientAppLayout />,
     children: [
-      { path: 'patient-doctor', element: <PatientDoctorPage /> },
+      { path: 'patient-doctor', element: <PatientCheckDoctor /> },
       // TODO: página "My Appointments" (turnos del paciente)
-      { path: 'appointments', element: <p className="text-ink-soft">Sección en construcción.</p> },
+      { path: 'appointments', element: <PatientAppointmentPage /> },
     ],
   },
 ])

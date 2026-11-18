@@ -1,5 +1,5 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import Button from '../../../components/atoms/Button'
 import Icon from '../../../components/atoms/Icon'
 import TextInput from '../../../components/atoms/TextInput'
 import FormField from '../../../components/molecules/FormField'
@@ -9,6 +9,7 @@ const DNI_PATTERN = /^\d{7,8}$/
 
 function PatientLoginForm({ onSubmit }) {
   const {register, handleSubmit, formState: {errors, isSubmitting}} = useForm()
+  const [showDni, setShowDni] = useState(false)
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
@@ -17,7 +18,8 @@ function PatientLoginForm({ onSubmit }) {
           id="email"
           type="email"
           icon="mail"
-          placeholder="ejemplo@correo.com"
+          tone="plain"
+          placeholder="paciente@medportal.com"
           autoComplete="email"
           hasError={!!errors.email}
           {...register('email', {
@@ -27,13 +29,26 @@ function PatientLoginForm({ onSubmit }) {
         />
       </FormField>
 
-      <FormField label="DNI / Número de Identificación" htmlFor="dni" error={errors.dni?.message}>
+      <FormField label="DNI" htmlFor="dni" error={errors.dni?.message}>
         <TextInput
           id="dni"
-          icon="idCard"
+          type={showDni ? 'text' : 'password'}
+          icon="lock"
+          tone="plain"
           inputMode="numeric"
-          placeholder="Número de documento"
+          placeholder="••••••••"
+          autoComplete="off"
           hasError={!!errors.dni}
+          trailing={
+            <button
+              type="button"
+              onClick={() => setShowDni((visible) => !visible)}
+              aria-label={showDni ? 'Ocultar DNI' : 'Mostrar DNI'}
+              className="cursor-pointer rounded p-1 text-ink-soft hover:text-ink-strong"
+            >
+              <Icon name={showDni ? 'eyeOff' : 'eye'} size={16} />
+            </button>
+          }
           {...register('dni', {
             required: 'Ingrese su número de documento',
             pattern: { value: DNI_PATTERN, message: 'El documento debe tener 7 u 8 números, sin puntos' },
@@ -41,10 +56,13 @@ function PatientLoginForm({ onSubmit }) {
         />
       </FormField>
 
-      <Button type="submit" disabled={isSubmitting} className="mt-1 w-full">
-        {isSubmitting ? 'Ingresando...' : 'Ingresar al Portal Médico'}
-        {!isSubmitting && <Icon name="arrowRight" size={16} strokeWidth={2} />}
-      </Button>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-1 w-full cursor-pointer rounded-md bg-navy-button px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-navy-button-hover disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSubmitting ? 'Ingresando...' : 'Ingresar Paciente'}
+      </button>
     </form>
   )
 }
