@@ -4,10 +4,13 @@ export const ROLES = {
   patient: 'Paciente',
 }
 
-export function saveSession({ token, role, email }) {
+// dni: only for patients (the token does not include it and booking needs it)
+export function saveSession({ token, role, email, dni }) {
   localStorage.setItem('token', token)
   localStorage.setItem('role', role)
   localStorage.setItem('email', email)
+  if (dni) localStorage.setItem('dni', dni)
+  else localStorage.removeItem('dni')
 }
 
 export function getSession() {
@@ -15,5 +18,6 @@ export function getSession() {
     token: localStorage.getItem('token'),
     role: localStorage.getItem('role'),
     email: localStorage.getItem('email'),
+    dni: localStorage.getItem('dni'),
   }
 }

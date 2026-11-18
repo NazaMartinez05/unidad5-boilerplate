@@ -38,9 +38,31 @@ export function formatWeekRange(days) {
   return `${firstLabel} de ${MONTH_NAMES[first.getMonth()]} - ${lastLabel} de ${MONTH_NAMES[last.getMonth()]}`
 }
 
-// "Lunes 26 de Octubre"
-export function formatLongDate(date) {
-  return `${DAY_NAMES[date.getDay()]} ${date.getDate()} de ${MONTH_NAMES[date.getMonth()]}`
+// "Lunes 26 de Octubre" (or "Lunes 26 de Octubre de 2026" with withYear)
+export function formatLongDate(date, { withYear = false } = {}) {
+  const text = `${DAY_NAMES[date.getDay()]} ${date.getDate()} de ${MONTH_NAMES[date.getMonth()]}`
+  return withYear ? `${text} de ${date.getFullYear()}` : text
+}
+
+// Local date -> "YYYY-MM-DD" (same format the backend dates are converted to)
+export function toIsoDate(date) {
+  const pad = (number) => String(number).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+// Minutes between two "HH:mm" times
+export function minutesBetween(start, end) {
+  const toMinutes = (time) => {
+    const [hours, minutes] = time.split(':').map(Number)
+    return hours * 60 + minutes
+  }
+  return toMinutes(end) - toMinutes(start)
+}
+
+// "2026-10-24" (backend / date input format) -> "24 Oct, 2026"
+export function formatShortDate(isoDate) {
+  const date = new Date(`${isoDate}T00:00`)
+  return `${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}, ${date.getFullYear()}`
 }
 
 export function getShortDayName(date) {

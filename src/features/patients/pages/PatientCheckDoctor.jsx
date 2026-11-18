@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Button from '../../../components/atoms/Button'
 import Icon from '../../../components/atoms/Icon'
 import FormField from '../../../components/molecules/FormField'
@@ -6,36 +6,80 @@ import DoctorCard from '../components/DoctorCard'
 import SelectedAppointmentBar from '../components/SelectedAppointmentBar'
 import WeeklyAvailability from '../components/WeeklyAvailability'
 import Select from '../../../components/atoms/Select'
-import { getWeekStart } from '../../../utils/dates'
+import { getApiErrorMessage } from '../../../services/apiClient'
+import { getSession } from '../../../services/session'
+import { addDays, getWeekStart, getWorkWeek, isPastSlot, toIsoDate } from '../../../utils/dates'
+import {
+  createAppointment,
+  getAllDoctors,
+  getAllSpecialities,
+  getDoctorAvailabilities,
+} from '../services/patientService'
 
+// The design has no "reason" field, but POST /api/appointments requires one
+// (at least 5 characters). Replace with a form field if one is added.
+const DEFAULT_REASON = 'Consulta médica'
 
-function PatientCheckDoctor({ doctors = [], onSearch }) {
+// Unique specialities taken from the doctors list (fallback when the
+// specialities endpoint can't be used)
+function getSpecialitiesFromDoctors(doctors) {
+  const map = new Map()
+  doctors.forEach((d) => {
+    if (d.speciality?.specialityId) map.set(d.speciality.specialityId, d.speciality.name)
+  })
+  return [...map].map(([id, name]) => ({ id, name }))
+}
+
+const alertClass = 'rounded-md border px-4 py-3 text-sm'
+
+function PatientCheckDoctor() {
   const currentWeekStart = getWeekStart(new Date())//ref para volver a hoy y bloquear semanas pasadas
   const [weekStart, setWeekStart] = useState(currentWeekStart)//guarda el lunes de la semana que se esta viendo
   const [selectedSlot, setSelectedSlot] = useState(null)
+  const [doctors, setDoctors] = useState([])
+  const [specialities, setSpecialities] = useState([])
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [specialityId, setSpecialityId] = useState('')
   const [doctorId, setDoctorId] = useState('')
-  const [doctor, setDoctor] = useState(null);
+  const [doctor, setDoctor] = useState(null)
+  const [availabilities, setAvailabilities] = useState([])
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
+  const [isConfirming, setIsConfirming] = useState(false)
 
-  // Especialidades únicas, sacadas de los doctores
-  const specialityOptions = useMemo(() => {
-    const map = new Map()
-    doctors.forEach((d) => {
-      if (d.speciality) map.set(String(d.speciality.id), d.speciality.name)
-    })
-    return [
+  // Carga los combos al entrar a la pagina
+  useEffect(() => {
+    getAllDoctors()
+      .then(async (doctorList) => {
+        setDoctors(doctorList)
+        try {
+          setSpecialities(await getAllSpecialities())
+        } catch {
+          // Si el endpoint de especialidades no esta permitido para el paciente,
+          // se arman a partir de los doctores
+          setSpecialities(getSpecialitiesFromDoctors(doctorList))
+        }
+      })
+      .catch((error) => {
+        setErrorMessage(getApiErrorMessage(error, 'No se pudieron cargar los doctores y especialidades.'))
+      })
+  }, [])
+
+  const specialityOptions = useMemo(
+    () => [
       { value: '', label: 'Seleccione una especialidad' },
-      ...[...map].map(([value, label]) => ({ value, label })),
-    ]
-  }, [doctors])
+      ...specialities.map((s) => ({ value: s.id, label: s.name })),
+    ],
+    [specialities],
+  )
 
   // Doctores activos de la especialidad elegida
   const doctorOptions = useMemo(
     () => [
       { value: '', label: 'Seleccione un doctor' },
       ...doctors
-        .filter((d) => d.isActive && String(d.speciality?.id) === specialityId)
-        .map((d) => ({ value: String(d.id), label: d.name })),
+        .filter((d) => d.isActive && d.speciality?.specialityId === specialityId)
+        .map((d) => ({ value: d.id, label: d.name })),
     ],
     [doctors, specialityId],
   )
@@ -45,70 +89,146 @@ function PatientCheckDoctor({ doctors = [], onSearch }) {
     setDoctorId('') // al cambiar de especialidad, se limpia el doctor
   }
 
-  const handleSearch = () => {
-    const doctor = doctors.find((d) => String(d.id) === doctorId)
-    if (doctor) onSearch(doctor)
+  // Trae los turnos libres del doctor (GET /api/doctors/{id}/availabilities)
+  const loadAvailabilities = async (id) => {
+    setIsLoadingSlots(true)
+    try {
+      setAvailabilities(await getDoctorAvailabilities(id))
+    } catch (error) {
+      setAvailabilities([])
+      setErrorMessage(getApiErrorMessage(error, 'No se pudo cargar la disponibilidad del doctor.'))
+    } finally {
+      setIsLoadingSlots(false)
+    }
   }
 
-  // Para un día dado, obtiene los horarios del doctor y descarta los que ya pasaron
-  const getSlots = (day) => getDoctorSlots(doctor.id, day).filter((time) => !isPastSlot(day, time))
+  const handleSearch = () => {
+    const selected = doctors.find((d) => d.id === doctorId)
+    if (!selected) return
+    setDoctor(selected)
+    setSelectedSlot(null)
+    setWeekStart(currentWeekStart)
+    setErrorMessage('')
+    setSuccessMessage('')
+    loadAvailabilities(selected.id)
+  }
 
-  // Acá va la conexion al endpoint para reservar un turno
-  const handleConfirm = () => {
-    console.log('Confirm appointment', { doctorId: doctor.id, date: selectedSlot.date, time: selectedSlot.time })
+  // Para un dia dado, los horarios libres del doctor que todavia no pasaron
+  const getSlots = (day) => {
+    const isoDay = toIsoDate(day)
+    return availabilities
+      .filter((slot) => slot.date === isoDay && !isPastSlot(day, slot.time))
+      .map((slot) => slot.time)
+  }
+
+  // The grid works with { date, time }; this finds the backend slot behind it
+  const selectedAvailability = selectedSlot
+    ? availabilities.find((slot) => slot.date === toIsoDate(selectedSlot.date) && slot.time === selectedSlot.time)
+    : null
+
+  const handleSelectSlot = (slot) => {
+    setSelectedSlot(slot)
+    setSuccessMessage('')
+  }
+
+  // POST /api/appointments
+  const handleConfirm = async () => {
+    if (!selectedAvailability) return
+    const { dni } = getSession()
+    if (!dni) {
+      setErrorMessage('No se encontró su DNI en la sesión. Cierre sesión e ingrese nuevamente.')
+      return
+    }
+
+    setErrorMessage('')
+    setSuccessMessage('')
+    setIsConfirming(true)
+    try {
+      await createAppointment({
+        doctorId: doctor.id,
+        availabilitySlotId: selectedAvailability.id,
+        dni,
+        reason: DEFAULT_REASON,
+      })
+      setSuccessMessage('¡Turno confirmado! Lo puede ver en "Mis Turnos".')
+      setSelectedSlot(null)
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, 'No se pudo confirmar el turno. Intente nuevamente.'))
+    } finally {
+      setIsConfirming(false)
+      // The booked slot (or one another patient took) leaves the grid
+      loadAvailabilities(doctor.id)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-portal">
-    <section className="rounded-lg border border-field-line bg-surface p-6 sm:p-8">
-    <h1 className="mb-6 text-2xl font-bold text-brand sm:text-3xl">Reservar Turno Médico</h1>
-    <div className="grid items gap-4 md:grid-cols-[1fr_1fr_auto]">
-    
-      <FormField label="Seleccionar Especialidad" htmlFor="speciality">
-        <Select
-          id="speciality"
-          value={specialityId}
-          onChange={handleSpecialityChange}
-          options={specialityOptions}
-        />
-      </FormField>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+      <section className="rounded-lg border border-field-line bg-surface p-6 sm:p-8">
+        <h1 className="text-2xl font-bold text-brand sm:text-3xl">Reservar Turno Médico</h1>
+        <p className="mt-1 mb-6 text-sm text-ink">Seleccione la especialidad y el profesional para continuar.</p>
 
-      <FormField label="Seleccionar Doctor" htmlFor="doctor">
-        <Select
-          id="doctor"
-          value={doctorId}
-          onChange={(e) => setDoctorId(e.target.value)}
-          options={doctorOptions}
-          disabled={!specialityId}
-        />
-      </FormField>
+        <div className="grid items-end gap-4 md:grid-cols-[1fr_1fr_auto]">
+          <FormField label="Seleccionar Especialidad" htmlFor="speciality">
+            <Select
+              id="speciality"
+              value={specialityId}
+              onChange={handleSpecialityChange}
+              options={specialityOptions}
+            />
+          </FormField>
 
-      <Button onClick={handleSearch} disabled={!doctorId}>
-        <Icon name="search" size={16} strokeWidth={2} />
-        Buscar Disponibilidad
-      </Button>
-    </div>
-    </section>
+          <FormField label="Seleccionar Doctor" htmlFor="doctor">
+            <Select
+              id="doctor"
+              value={doctorId}
+              onChange={(e) => setDoctorId(e.target.value)}
+              options={doctorOptions}
+              disabled={!specialityId}
+            />
+          </FormField>
 
-    {doctor && ( //se muestra solo cuando se seleccione un doctor 
+          <Button onClick={handleSearch} disabled={!doctorId} className="py-2.5">
+            <Icon name="search" size={16} strokeWidth={2} />
+            Buscar Disponibilidad
+          </Button>
+        </div>
+      </section>
+
+      {errorMessage && (
+        <p role="alert" className={`${alertClass} border-danger/30 bg-danger/10 text-danger`}>
+          {errorMessage}
+        </p>
+      )}
+      {successMessage && (
+        <p role="status" className={`${alertClass} border-mint bg-mint/20 text-ink-strong`}>
+          {successMessage}
+        </p>
+      )}
+
+      {doctor && ( //se muestra solo cuando se seleccione un doctor
         <>
           <DoctorCard doctor={doctor} />
 
           <WeeklyAvailability
             weekDays={getWorkWeek(weekStart)}
             getSlots={getSlots}
+            isLoading={isLoadingSlots}
             selectedSlot={selectedSlot}
-            onSelectSlot={setSelectedSlot}
+            onSelectSlot={handleSelectSlot}
             canGoPrev={weekStart > currentWeekStart}
             onPrevWeek={() => setWeekStart(addDays(weekStart, -7))}
             onNextWeek={() => setWeekStart(addDays(weekStart, 7))}
           />
 
-          <SelectedAppointmentBar doctor={doctor} slot={selectedSlot} onConfirm={handleConfirm} />
+          <SelectedAppointmentBar
+            slot={selectedAvailability ? selectedSlot : null}
+            endTime={selectedAvailability?.endTime}
+            isConfirming={isConfirming}
+            onConfirm={handleConfirm}
+          />
         </>
       )}
     </div>
-    
   )
 }
 
