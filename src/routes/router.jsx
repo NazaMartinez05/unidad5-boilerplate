@@ -1,9 +1,11 @@
-
 import { createBrowserRouter } from 'react-router-dom'
 import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
 import PatientAppLayout from '../components/templates/PatientAppLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
+import DoctorsPage from '../features/doctors/pages/DoctorsPage'
+import DoctorFormPage from '../features/doctors/pages/DoctorFormPage'
+import DoctorAvailabilitiesPage from '../features/doctors/pages/DoctorAvailabilitiesPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
 import AdminLoginPage from '../features/auth/pages/AdminLoginPage'
 
@@ -17,6 +19,10 @@ export const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'doctors', element: <DoctorsPage /> },
+      { path: 'doctors/new', element: <DoctorFormPage /> },
+      { path: 'doctors/:id', element: <DoctorFormPage /> },
+      { path: 'doctors/availabilities', element: <DoctorAvailabilitiesPage /> },
       {
         path: '*',
         element: <p className="text-ink-soft">Sección en construcción.</p>,
