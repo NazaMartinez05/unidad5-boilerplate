@@ -20,7 +20,6 @@ function SpecialityFormPage() {
   const [description, setDescription] = useState(
     speciality?.description || ''
   )
-  const [status, setStatus] = useState('ACTIVE')
   const [errorMessage, setErrorMessage] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [validationErrors, setValidationErrors] = useState({})
@@ -127,8 +126,6 @@ function SpecialityFormPage() {
       <SpecialityForm
         name={name}
         description={description}
-        status={status}
-        onStatusChange={(event) => setStatus(event.target.value)}
         onNameChange={(event) => {
           setName(event.target.value)
           setValidationErrors((current) => ({

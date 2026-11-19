@@ -3,7 +3,6 @@ import FormField from '../../../components/molecules/FormField'
 import TextInput from '../../../components/atoms/TextInput'
 import TextArea from '../../../components/atoms/TextArea'
 import Button from '../../../components/atoms/Button'
-import Select from '../../../components/atoms/Select'
 
 function SpecialityForm({
   name,
@@ -16,8 +15,6 @@ function SpecialityForm({
   errorMessage,
   isSaving = false,
   isEditing = false,
-  status,
-  onStatusChange,
 }) {
   return (
     <section className="rounded-xl border border-line bg-surface p-6 shadow-sm">
@@ -62,26 +59,6 @@ function SpecialityForm({
           </p>
                   </FormField>
 
-        <FormField
-          label="Estado inicial"
-          htmlFor="status"
-        >
-          <Select
-            id="status"
-            value={status}
-            onChange={onStatusChange}
-            options={[
-              {
-                value: 'ACTIVE',
-                label: 'Activo - Disponible para programación',
-              },
-              {
-                value: 'INACTIVE',
-                label: 'Inactivo - No disponible para programación',
-              },
-            ]}
-          />
-        </FormField>
 
         {errorMessage && (
           <p
