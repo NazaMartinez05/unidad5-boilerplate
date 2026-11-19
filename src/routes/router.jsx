@@ -18,7 +18,7 @@ export const router = createBrowserRouter([
       { path: 'doctors', element: <DoctorsPage /> },
       { path: 'doctors/new', element: <DoctorFormPage /> },
       { path: 'doctors/:id', element: <DoctorFormPage /> },
-      { path: 'doctors/:id/availabilities', element: <DoctorAvailabilitiesPage /> },
+      { path: 'doctors/availabilities', element: <DoctorAvailabilitiesPage /> },
       // TODO: las secciones del menú que todavía no tienen página (doctors,
       // specialities, patients) caen en esta ruta comodín, que muestra
       // "Sección en construcción." sin que desaparezca el menú.
