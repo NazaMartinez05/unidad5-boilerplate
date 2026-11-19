@@ -1,11 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom'
 import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
+import PatientAppLayout from '../components/templates/PatientAppLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
 import DoctorsPage from '../features/doctors/pages/DoctorsPage'
 import DoctorFormPage from '../features/doctors/pages/DoctorFormPage'
 import DoctorAvailabilitiesPage from '../features/doctors/pages/DoctorAvailabilitiesPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
+import PatientDoctorPage from '../features/patients/pages/PatientDoctorPage'
 
 export const router = createBrowserRouter([
   {
@@ -38,5 +40,15 @@ export const router = createBrowserRouter([
     // portal en lugar del menú lateral del admin.
     element: <PatientLayout />,
     children: [{ path: 'patients/login', element: <PatientLoginPage /> }],
+  },
+  {
+    // Páginas del paciente ya logueado: barra con "Find Doctors" / "My Appointments".
+    // Si no hay sesión de paciente, PatientAppLayout redirige al login.
+    element: <PatientAppLayout />,
+    children: [
+      { path: 'patient-doctor', element: <PatientDoctorPage /> },
+      // TODO: página "My Appointments" (turnos del paciente)
+      { path: 'appointments', element: <p className="text-ink-soft">Sección en construcción.</p> },
+    ],
   },
 ])
