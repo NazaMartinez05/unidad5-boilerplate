@@ -2,6 +2,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
+import PatientAppLayout from '../components/templates/PatientAppLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
 import AdminLoginPage from '../features/auth/pages/AdminLoginPage'
@@ -31,6 +32,14 @@ export const router = createBrowserRouter([
     element: <PatientLayout />,
     children: [
       { path: 'patients/login', element: <PatientLoginPage /> },
+    ],
+  },
+  {
+    // Páginas del paciente ya logueado
+    element: <PatientAppLayout />,
+    children: [
+      { path: 'patient-doctor', element: <p>Sección de pacientes en construcción.</p> },
+      { path: 'appointments', element: <p className="text-ink-soft">Sección en construcción.</p> },
     ],
   },
 ])

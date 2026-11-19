@@ -1,4 +1,3 @@
-// Label + any input passed as children + validation message
 function FormField({ label, htmlFor, error, children }) {
   return (
     <div className="flex flex-col gap-1.5">
