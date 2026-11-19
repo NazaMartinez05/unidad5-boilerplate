@@ -1,16 +1,27 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import Button from '../../../components/atoms/Button'
+import Badge from '../../../components/atoms/Badge'
+import Icon from '../../../components/atoms/Icon'
 import TextInput from '../../../components/atoms/TextInput'
+import Pagination from '../../../components/molecules/Pagination'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import { deleteDoctor, getDoctors } from '../services/doctorsService'
 
 const PAGE_SIZE = 10
 
 const linkButtonClass =
-  'inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-dark'
+  'inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark'
 
-const actionClass = 'rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors'
+const iconButtonClass = 'inline-flex cursor-pointer rounded-md p-1.5 transition-colors'
+
+// "Elena Martínez" → "EM"
+const getInitials = (name) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('')
 
 function DoctorsPage() {
   const [doctors, setDoctors] = useState([])
@@ -42,6 +53,7 @@ function DoctorsPage() {
     setReloadKey((key) => key + 1)
   }
 
+  // Se busca al apretar Enter en el buscador
   const handleSearch = (event) => {
     event.preventDefault()
     const text = searchInput.trim()
@@ -60,6 +72,7 @@ function DoctorsPage() {
     setPageIndex(newPage)
   }
 
+  // Borrado lógico (obligatorio según la consigna)
   const handleDelete = async (doctor) => {
     if (!window.confirm(`¿Eliminar a ${doctor.name}?`)) return
     try {
@@ -74,56 +87,61 @@ function DoctorsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Título y botón de alta */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      {/* Título, buscador y acciones */}
+      <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
         <div>
           <h1 className="text-3xl font-bold text-ink-strong">Directorio de Doctores</h1>
           <p className="mt-1 text-sm text-ink-soft">
-            Gestione el personal médico y sus horarios de atención.
+            Gestione el personal médico y supervise su disponibilidad actual.
           </p>
         </div>
-        <Link to="/doctors/new" className={linkButtonClass}>
-          + Nuevo doctor
-        </Link>
-      </div>
 
-      {/* Buscador */}
-      <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row sm:items-start">
-        <div className="flex-1 sm:max-w-sm">
-          <TextInput
-            placeholder="Buscar doctor por nombre..."
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            hasError={!!searchError}
-          />
-          {searchError && <p className="mt-1 text-xs text-danger">{searchError}</p>}
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+          <form onSubmit={handleSearch} className="sm:w-64">
+            <TextInput
+              icon="search"
+              placeholder="Buscar doctor por nombre..."
+              aria-label="Buscar doctor por nombre"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              hasError={!!searchError}
+            />
+            {searchError && <p className="mt-1 text-xs text-danger">{searchError}</p>}
+          </form>
+
+          <Link to="/doctors/availabilities" className={linkButtonClass}>
+            <Icon name="clock" size={16} />
+            Agregar Disponibilidad Horaria
+          </Link>
+          <Link to="/doctors/new" className={linkButtonClass}>
+            <Icon name="plus" size={16} strokeWidth={2} />
+            Nuevo Doctor
+          </Link>
         </div>
-        <Button type="submit" className="py-2.5">
-          Buscar
-        </Button>
-      </form>
+      </div>
 
       {/* Tabla */}
       <section className="overflow-hidden rounded-lg border border-line bg-surface">
-        {isLoading && <p className="p-6 text-sm text-ink-soft">Cargando...</p>}
+        <h2 className="px-5 py-4 text-base font-bold text-ink-strong">Registros de Doctores</h2>
+
+        {isLoading && <p className="px-5 pb-6 text-sm text-ink-soft">Cargando...</p>}
 
         {!isLoading && errorMessage && (
-          <p role="alert" className="m-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+          <p role="alert" className="mx-5 mb-5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
             {errorMessage}
           </p>
         )}
 
         {!isLoading && !errorMessage && doctors.length === 0 && (
-          <p className="p-6 text-sm text-ink-soft">No hay doctores para mostrar.</p>
+          <p className="px-5 pb-6 text-sm text-ink-soft">No hay doctores para mostrar.</p>
         )}
 
         {!isLoading && !errorMessage && doctors.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-line bg-canvas text-[11px] uppercase tracking-wider text-ink-soft">
+              <thead className="border-y border-line bg-canvas text-[11px] uppercase tracking-wider text-ink-soft">
                 <tr>
-                  <th className="px-5 py-3">Nombre</th>
-                  <th className="px-5 py-3">Matrícula</th>
+                  <th className="px-5 py-3">Nombre del doctor</th>
                   <th className="px-5 py-3">Especialidad</th>
                   <th className="px-5 py-3 text-right">Acciones</th>
                 </tr>
@@ -131,35 +149,39 @@ function DoctorsPage() {
               <tbody className="divide-y divide-line">
                 {doctors.map((doctor) => (
                   <tr key={doctor.id} className="hover:bg-hover">
-                    <td className="px-5 py-3.5 font-semibold text-ink-strong">{doctor.name}</td>
-                    <td className="px-5 py-3.5">{doctor.licenseNumber}</td>
                     <td className="px-5 py-3.5">
-                      <span className="inline-block rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
-                        {doctor.speciality?.name}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-sm font-bold text-accent">
+                          {getInitials(doctor.name)}
+                        </span>
+                        <div>
+                          <p className="font-semibold text-ink-strong">{doctor.name}</p>
+                          <p className="text-xs text-ink-soft">Matrícula: {doctor.licenseNumber}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <Badge variant="info">{doctor.speciality?.name ?? 'Sin especialidad'}</Badge>
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex justify-end gap-1">
                         <Link
-                         to={`/doctors/${doctor.id}/availabilities`}
-                         state={{ doctor }}
-                          className={`${actionClass} text-accent hover:bg-accent-soft`}
-                        >
-                          Horarios
-                        </Link>
-                        <Link
                           to={`/doctors/${doctor.id}`}
                           state={{ doctor }}
-                          className={`${actionClass} text-accent hover:bg-accent-soft`}
-                         >
-                            Editar
+                          title="Editar doctor"
+                          aria-label={`Editar a ${doctor.name}`}
+                          className={`${iconButtonClass} text-accent hover:bg-accent-soft`}
+                        >
+                          <Icon name="edit" size={16} />
                         </Link>
                         <button
                           type="button"
+                          title="Eliminar doctor"
+                          aria-label={`Eliminar a ${doctor.name}`}
                           onClick={() => handleDelete(doctor)}
-                          className={`${actionClass} cursor-pointer text-danger hover:bg-danger/10`}
+                          className={`${iconButtonClass} text-danger hover:bg-danger/10`}
                         >
-                          Eliminar
+                          <Icon name="trash" size={16} />
                         </button>
                       </div>
                     </td>
@@ -170,29 +192,12 @@ function DoctorsPage() {
           </div>
         )}
 
-        {/* Paginación */}
-        <div className="flex items-center justify-between border-t border-line bg-canvas px-5 py-3 text-xs text-ink-soft">
+        {/* Pie: cantidad de registros y paginación */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line bg-canvas px-5 py-3 text-xs text-ink-soft">
           <span>
-            Página {pageIndex} de {totalPages} · {total} doctores
+            Mostrando {doctors.length} de {total} registros
           </span>
-          <div className="flex gap-1">
-            <button
-              type="button"
-              disabled={pageIndex <= 1 || isLoading}
-              onClick={() => goToPage(pageIndex - 1)}
-              className="cursor-pointer rounded border border-line bg-surface px-2.5 py-1 hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              ‹ Anterior
-            </button>
-            <button
-              type="button"
-              disabled={pageIndex >= totalPages || isLoading}
-              onClick={() => goToPage(pageIndex + 1)}
-              className="cursor-pointer rounded border border-line bg-surface px-2.5 py-1 hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Siguiente ›
-            </button>
-          </div>
+          <Pagination page={pageIndex} totalPages={totalPages} onPageChange={goToPage} />
         </div>
       </section>
     </div>
