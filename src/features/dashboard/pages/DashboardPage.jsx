@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../../components/atoms/Icon'
 import { getApiErrorMessage } from '../../../services/apiClient'
+import Button from '../../../components/atoms/Button'
+import TextInput from '../../../components/atoms/TextInput'
+import Badge from '../../../components/atoms/Badge'
+import Pagination from '../../../components/molecules/Pagination'
 import {
   getDashboardDoctors,
   getDashboardSpecialities,
@@ -11,6 +15,9 @@ import {
 function DashboardPage() {
   const [doctors, setDoctors] = useState([])
   const [doctorTotal, setDoctorTotal] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 5
+  const totalPages = Math.ceil((doctorTotal ?? 0) / pageSize)
   const [specialityTotal, setSpecialityTotal] = useState(null)
 
   const [isLoading, setIsLoading] = useState(true)
@@ -28,7 +35,11 @@ function DashboardPage() {
       setSpecialityError('')
 
       const [doctorsResult, specialitiesResult] = await Promise.allSettled([
-        getDashboardDoctors({ pageSize: 5, pageIndex: 1, name: searchName }),
+        getDashboardDoctors({
+          pageSize,
+         pageIndex: currentPage - 1,
+         name: searchName,
+         }),
         getDashboardSpecialities(),
       ])
 
@@ -53,7 +64,7 @@ function DashboardPage() {
     }
 
     loadDashboard()
-  }, [searchName])
+  }, [searchName, currentPage])
 
   const handleSearch = (event) => {
     event.preventDefault()
@@ -66,12 +77,14 @@ function DashboardPage() {
     }
 
     setSearchError('')
+    setCurrentPage(1)
     setSearchName(name)
   }
 
   const handleClearSearch = () => {
     setSearchInput('')
     setSearchError('')
+    setCurrentPage(1)
     setSearchName('')
   }
 
@@ -199,20 +212,16 @@ function DashboardPage() {
             onSubmit={handleSearch}
             className="flex flex-wrap gap-2"
           >
-            <input
-              type="search"
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Buscar médico..."
-              className="min-w-0 rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink-strong outline-none focus:border-brand"
-            />
-
-            <button
-              type="submit"
-              className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-            >
-              Buscar
-            </button>
+            <TextInput
+             type="search"
+             value={searchInput}
+             onChange={(event) => setSearchInput(event.target.value)}
+             placeholder="Buscar por nombre..."
+             icon="search"
+           />
+           <Button type="submit">
+             Buscar
+           </Button>
 
             {searchName && (
               <button
@@ -253,12 +262,8 @@ function DashboardPage() {
                   Especialidad
                 </th>
 
-                <th className="px-4 py-3 font-semibold">
-                  Matrícula
-                </th>
-
-                <th className="px-4 py-3 font-semibold">
-                  Estado
+                <th className="px-4 py-3 text-right font-semibold">
+                 Acciones
                 </th>
               </tr>
             </thead>
@@ -267,7 +272,7 @@ function DashboardPage() {
 
               {isLoading && (
                 <tr>
-                  <td colSpan="4" className="px-4 py-8 text-center text-ink-soft">
+                  <td colSpan="3" className="px-4 py-8 text-center text-ink-soft">
                     Cargando profesionales...
                   </td>
                 </tr>
@@ -293,16 +298,19 @@ function DashboardPage() {
                   <td className="px-4 py-4 text-ink-soft">
                     {doctor.specialty?.name || 'Sin especialidad'}
                   </td>
-
-                  <td className="px-4 py-4 text-ink-soft">
-                    {doctor.licenseNumber}
-                  </td>
-
-                  <td className="px-4 py-4">
-                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                      Activo
-                    </span>
-                  </td>
+                <td className="px-4 py-4">
+                 <Badge
+                    variant={doctor.isActive ? 'success' : 'danger'}
+                 withDot
+                  >
+                 {doctor.isActive ? 'Activo' : 'Inactivo'}
+                </Badge>
+                </td>  
+                <td className="px-4 py-4 text-right">
+                <span className="text-sm font-semibold text-brand">
+                  Ver detalle
+                </span>
+                </td>
                 </tr>
               ))}
 
@@ -311,6 +319,15 @@ function DashboardPage() {
           </table>
 
         </div>
+        {!isLoading && !doctorError && totalPages > 1 && (
+  <div className="mt-4 flex justify-end">
+    <Pagination
+      page={currentPage}
+      totalPages={totalPages}
+      onPageChange={setCurrentPage}
+    />
+  </div>
+)}
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
 
