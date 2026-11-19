@@ -37,7 +37,7 @@ function DashboardPage() {
       const [doctorsResult, specialitiesResult] = await Promise.allSettled([
         getDashboardDoctors({
           pageSize,
-         pageIndex: currentPage - 1,
+         pageIndex: currentPage,
          name: searchName,
          }),
         getDashboardSpecialities(),
@@ -110,7 +110,7 @@ function DashboardPage() {
       <div className="mb-6 flex flex-wrap gap-3">
 
         <Link
-          to="/doctors"
+          to="/doctors/new"
           className="inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
         >
           <span className="text-lg">+</span>
@@ -296,20 +296,12 @@ function DashboardPage() {
                   </td>
 
                   <td className="px-4 py-4 text-ink-soft">
-                    {doctor.specialty?.name || 'Sin especialidad'}
+                    {doctor.speciality?.name || 'Sin especialidad'}
                   </td>
-                <td className="px-4 py-4">
-                 <Badge
-                    variant={doctor.isActive ? 'success' : 'danger'}
-                 withDot
-                  >
-                 {doctor.isActive ? 'Activo' : 'Inactivo'}
-                </Badge>
-                </td>  
                 <td className="px-4 py-4 text-right">
-                <span className="text-sm font-semibold text-brand">
+                <Link to="/doctors" className="text-sm font-semibold text-brand hover:underline">
                   Ver detalle
-                </span>
+                </Link>
                 </td>
                 </tr>
               ))}
