@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import Button from '../../../components/atoms/Button'
-import SelectInput from '../../../components/atoms/SelectInput'
+import Select from '../../../components/atoms/Select'
 import TextInput from '../../../components/atoms/TextInput'
 import FormField from '../../../components/molecules/FormField'
 
@@ -13,12 +13,19 @@ function DoctorForm({ defaultValues, specialities, onSubmit, onCancel, submitLab
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues })
 
+  // Opciones del desplegable en el formato que pide el átomo Select
+  const specialityOptions = [
+    { value: '', label: 'Seleccione especialidad' },
+    ...specialities.map((speciality) => ({ value: speciality.id, label: speciality.name })),
+  ]
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
-      <FormField label="Nombre completo" htmlFor="name" error={errors.name?.message}>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
+      <FormField label="Nombre Completo del Doctor" htmlFor="name" error={errors.name?.message}>
         <TextInput
           id="name"
-          placeholder="Ej: Alejandro Rivera"
+          icon="doctors"
+          placeholder="Ej: Dr. Alejandro Martínez"
           hasError={!!errors.name}
           {...register('name', {
             required: 'Ingrese el nombre del doctor',
@@ -28,38 +35,31 @@ function DoctorForm({ defaultValues, specialities, onSubmit, onCancel, submitLab
         />
       </FormField>
 
-      <FormField label="Matrícula" htmlFor="licenseNumber" error={errors.licenseNumber?.message}>
-        <TextInput
-          id="licenseNumber"
-          placeholder="Ej: MP-4920"
-          hasError={!!errors.licenseNumber}
-          {...register('licenseNumber', { required: 'Ingrese la matrícula' })}
-        />
-      </FormField>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <FormField label="Especialidad" htmlFor="specialityId" error={errors.specialityId?.message}>
+          <Select
+            id="specialityId"
+            options={specialityOptions}
+            aria-invalid={!!errors.specialityId}
+            {...register('specialityId', { required: 'Seleccione una especialidad' })}
+          />
+        </FormField>
 
-      <FormField label="Especialidad" htmlFor="specialityId" error={errors.specialityId?.message}>
-        <SelectInput
-          id="specialityId"
-          hasError={!!errors.specialityId}
-          {...register('specialityId', { required: 'Seleccione una especialidad' })}
-        >
-          <option value="">Seleccione una especialidad...</option>
-          {specialities.map((speciality) => (
-            <option key={speciality.id} value={speciality.id}>
-              {speciality.name}
-            </option>
-          ))}
-        </SelectInput>
-      </FormField>
+        <FormField label="Número de Licencia Médica" htmlFor="licenseNumber" error={errors.licenseNumber?.message}>
+          <TextInput
+            id="licenseNumber"
+            icon="idCard"
+            placeholder="Ej: MP-45920"
+            hasError={!!errors.licenseNumber}
+            {...register('licenseNumber', { required: 'Ingrese el número de licencia' })}
+          />
+        </FormField>
+      </div>
 
-      <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="cursor-pointer rounded-md border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-hover"
-        >
+      <div className="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
+        <Button variant="secondary" onClick={onCancel}>
           Cancelar
-        </button>
+        </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Guardando...' : submitLabel}
         </Button>

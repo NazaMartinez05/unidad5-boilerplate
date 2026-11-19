@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import Icon from '../../../components/atoms/Icon'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import DoctorForm from '../components/DoctorForm'
-import { createDoctor, getDoctors, getSpecialities, updateDoctor } from '../services/doctorsService'
+import { createDoctor, getAllDoctors, getAllSpecialities, updateDoctor } from '../services/doctorsService'
 
 // Sirve para las dos rutas:
 //   /doctors/new  → alta   (no hay id)
@@ -24,13 +25,12 @@ function DoctorFormPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const specialitiesPage = await getSpecialities()
-        setSpecialities(specialitiesPage.data)
+        setSpecialities(await getAllSpecialities())
 
         // Si se entró directo por URL (sin pasar por la tabla), buscamos el doctor
         if (isEdit && !doctorFromList) {
-          const doctorsPage = await getDoctors({ pageSize: 100, pageIndex: 1 })
-          const found = doctorsPage.data.find((item) => item.id === id)
+          const doctors = await getAllDoctors()
+          const found = doctors.find((item) => item.id === id)
           if (!found) setErrorMessage('No se encontró el doctor.')
           setDoctor(found ?? null)
         }
@@ -61,35 +61,51 @@ function DoctorFormPage() {
     specialityId: doctor?.speciality?.specialityId ?? '',
   }
 
+  const title = isEdit ? 'Editar Doctor' : 'Agregar Nuevo Doctor'
+
   return (
-    <div className="flex max-w-xl flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-bold text-ink-strong">
-          {isEdit ? 'Editar doctor' : 'Nuevo doctor'}
-        </h1>
-        <p className="mt-1 text-sm text-ink-soft">
-          {isEdit ? 'Modifique los datos del profesional.' : 'Complete los datos del nuevo profesional.'}
-        </p>
-      </div>
+    <div className="flex max-w-3xl flex-col gap-5">
+      {/* Ruta de navegación */}
+      <nav aria-label="Ruta de navegación" className="flex items-center gap-2 text-sm">
+        <Link to="/doctors" className="text-ink-soft hover:text-brand">
+          Doctores
+        </Link>
+        <Icon name="chevronRight" size={14} />
+        <span className="font-semibold text-brand">{title}</span>
+      </nav>
 
-      <section className="rounded-lg border border-line bg-surface p-6">
-        {errorMessage && (
-          <p role="alert" className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-            {errorMessage}
+      <section className="overflow-hidden rounded-lg border border-line bg-surface">
+        <div className="border-b border-line bg-canvas px-6 py-5">
+          <h1 className="flex items-center gap-2 text-lg font-bold text-ink-strong">
+            <Icon name="doctors" size={20} />
+            {isEdit ? 'Editar Doctor' : 'Registrar Nuevo Doctor'}
+          </h1>
+          <p className="mt-1 text-sm text-ink-soft">
+            {isEdit
+              ? 'Modifique los datos del profesional.'
+              : 'Complete todos los campos obligatorios para integrar al nuevo facultativo al sistema del centro médico.'}
           </p>
-        )}
+        </div>
 
-        {isLoading && <p className="text-sm text-ink-soft">Cargando...</p>}
+        <div className="p-6">
+          {errorMessage && (
+            <p role="alert" className="mb-5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {errorMessage}
+            </p>
+          )}
 
-        {!isLoading && (!isEdit || doctor) && (
-          <DoctorForm
-            defaultValues={defaultValues}
-            specialities={specialities}
-            onSubmit={handleSubmit}
-            onCancel={() => navigate('/doctors')}
-            submitLabel={isEdit ? 'Guardar cambios' : 'Crear doctor'}
-          />
-        )}
+          {isLoading && <p className="text-sm text-ink-soft">Cargando...</p>}
+
+          {!isLoading && (!isEdit || doctor) && (
+            <DoctorForm
+              defaultValues={defaultValues}
+              specialities={specialities}
+              onSubmit={handleSubmit}
+              onCancel={() => navigate('/doctors')}
+              submitLabel={isEdit ? 'Guardar Cambios' : 'Guardar Doctor'}
+            />
+          )}
+        </div>
       </section>
     </div>
   )

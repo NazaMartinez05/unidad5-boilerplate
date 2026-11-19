@@ -47,12 +47,16 @@ export async function updateAvailability(availability) {
   return response.data
 }
 
+// GET /api/doctors/allDoctors  (todos, sin paginar: para el desplegable de doctores)
+// Devuelve [{ id, name, licenseNumber, isActive, speciality: { specialityId, name } }]
+export async function getAllDoctors() {
+  const response = await apiClient.get('/api/doctors/allDoctors')
+  return response.data
+}
 
-// GET /api/specialties  (para llenar el desplegable del formulario)
-// Devuelve { pageSize, pageIndex, total, data: [{ id, name, description }] }
-export async function getSpecialities() {
-  const response = await apiClient.get('/api/specialties', {
-    params: { pageSize: 100, pageIndex: 1 },
-  })
+// GET /api/specialties/allSpeciality  (todas, sin paginar: para el desplegable de especialidades)
+// Devuelve [{ id, name, description }]
+export async function getAllSpecialities() {
+  const response = await apiClient.get('/api/specialties/allSpeciality')
   return response.data
 }
