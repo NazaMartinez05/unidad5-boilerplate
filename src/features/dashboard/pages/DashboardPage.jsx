@@ -37,7 +37,7 @@ function DashboardPage() {
       const [doctorsResult, specialitiesResult] = await Promise.allSettled([
         getDashboardDoctors({
           pageSize,
-         pageIndex: currentPage - 1,
+         pageIndex: currentPage,
          name: searchName,
          }),
         getDashboardSpecialities(),
@@ -298,14 +298,6 @@ function DashboardPage() {
                   <td className="px-4 py-4 text-ink-soft">
                     {doctor.speciality?.name || 'Sin especialidad'}
                   </td>
-                <td className="px-4 py-4">
-                 <Badge
-                    variant={doctor.isActive ? 'success' : 'danger'}
-                 withDot
-                  >
-                 {doctor.isActive ? 'Activo' : 'Inactivo'}
-                </Badge>
-                </td>  
                 <td className="px-4 py-4 text-right">
                 <Link to="/doctors" className="text-sm font-semibold text-brand hover:underline">
                   Ver detalle
