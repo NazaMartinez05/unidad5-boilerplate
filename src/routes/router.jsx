@@ -1,3 +1,4 @@
+
 import { createBrowserRouter } from 'react-router-dom'
 import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
@@ -7,14 +8,23 @@ import DoctorsPage from '../features/doctors/pages/DoctorsPage'
 import DoctorFormPage from '../features/doctors/pages/DoctorFormPage'
 import DoctorAvailabilitiesPage from '../features/doctors/pages/DoctorAvailabilitiesPage'
 import PatientLoginPage from '../features/patients/pages/PatientLoginPage'
+<<<<<<< HEAD
 //import PatientDoctorPage from '../features/patients/pages/PatientDoctorPage'
+=======
+import AdminLoginPage from '../features/auth/pages/AdminLoginPage'
+>>>>>>> dc7e51e30bbe22662922458dd7a7b35ca3ca0f63
 
 export const router = createBrowserRouter([
+  {
+    path: '/admin/login',
+    element: <AdminLoginPage />,
+  },
   {
     path: '/',
     element: <AdminLayout />,
     children: [
       { index: true, element: <DashboardPage /> },
+<<<<<<< HEAD
       { path: 'doctors', element: <DoctorsPage /> },
       { path: 'doctors/new', element: <DoctorFormPage /> },
       { path: 'doctors/:id', element: <DoctorFormPage /> },
@@ -33,20 +43,30 @@ export const router = createBrowserRouter([
       //        path: 'doctors'  <->  to: '/doctors'
       //        { path: 'doctors', element: <DoctorsPage /> },
       { path: '*', element: <p className="text-ink-soft">Sección en construcción.</p> },
+=======
+      {
+        path: '*',
+        element: <p className="text-ink-soft">Sección en construcción.</p>,
+      },
+>>>>>>> dc7e51e30bbe22662922458dd7a7b35ca3ca0f63
     ],
   },
   {
-    // Páginas del portal de pacientes (MedPortal): usan la barra superior del
-    // portal en lugar del menú lateral del admin.
     element: <PatientLayout />,
-    children: [{ path: 'patients/login', element: <PatientLoginPage /> }],
+    children: [
+      { path: 'patients/login', element: <PatientLoginPage /> },
+    ],
   },
   {
     // Páginas del paciente ya logueado: barra con "Find Doctors" / "My Appointments".
     // Si no hay sesión de paciente, PatientAppLayout redirige al login.
     element: <PatientAppLayout />,
     children: [
+<<<<<<< HEAD
       //{ path: 'patient-doctor', element: <PatientDoctorPage /> },
+=======
+      { path: 'patient-doctor', element: <p>Sección de pacientes en construcción.</p> },
+>>>>>>> dc7e51e30bbe22662922458dd7a7b35ca3ca0f63
       // TODO: página "My Appointments" (turnos del paciente)
       { path: 'appointments', element: <p className="text-ink-soft">Sección en construcción.</p> },
     ],
