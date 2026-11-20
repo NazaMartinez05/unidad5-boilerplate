@@ -172,6 +172,15 @@ function DoctorsPage() {
                     <td className="px-5 py-3.5">
                       <div className="flex justify-end gap-1">
                         <Link
+                         to={`/doctors/${doctor.id}/detail`}
+                         state={{ doctor }}
+                         title="Ver detalle"
+                         aria-label={`Ver detalle de ${doctor.name}`}
+                         className={`${iconButtonClass} text-accent hover:bg-accent-soft`}
+                         >
+                        <Icon name="eye" size={16} />
+                        </Link>
+                        <Link
                           to={`/doctors/${doctor.id}`}
                           state={{ doctor }}
                           title="Editar doctor"

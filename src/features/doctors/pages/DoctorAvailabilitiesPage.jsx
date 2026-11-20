@@ -11,6 +11,7 @@ import {
   getDoctorAvailabilities,
   updateAvailability,
 } from '../services/doctorsService'
+import { summarizeSlots } from '../../../utils/schedule'
 
 // Los días como los espera el back (DayHelper acepta con y sin tilde)
 const DAYS = [
@@ -71,14 +72,12 @@ function DoctorAvailabilitiesPage() {
     getDoctorAvailabilities(doctorId)
       .then((availabilities) => {
         const updated = emptySchedule()
+        // El back devuelve turnos con fecha: los agrupamos por día de la semana
+        const summary = summarizeSlots(availabilities)
         DAYS.forEach((day) => {
-          const found = availabilities.find((item) => normalize(item.day) === normalize(day.value))
+          const found = summary[normalize(day.value)]
           if (found) {
-            updated[day.value] = {
-              enabled: true,
-              startTime: found.startTime.slice(0, 5), // "09:00:00" → "09:00"
-              endTime: found.endTime.slice(0, 5),
-            }
+            updated[day.value] = { enabled: true, startTime: found.startTime, endTime: found.endTime }
           }
         })
         setSchedule(updated)
