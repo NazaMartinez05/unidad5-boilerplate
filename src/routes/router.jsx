@@ -3,6 +3,7 @@ import AdminLayout from '../components/templates/AdminLayout'
 import PatientLayout from '../components/templates/PatientLayout'
 import PatientAppLayout from '../components/templates/PatientAppLayout'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
+import DoctorDetailPage from '../features/doctors/pages/DoctorDetailPage'
 import DoctorsPage from '../features/doctors/pages/DoctorsPage'
 import DoctorFormPage from '../features/doctors/pages/DoctorFormPage'
 import DoctorAvailabilitiesPage from '../features/doctors/pages/DoctorAvailabilitiesPage'
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: 'doctors', element: <DoctorsPage /> },
       { path: 'doctors/new', element: <DoctorFormPage /> },
       { path: 'doctors/:id', element: <DoctorFormPage /> },
+      { path: 'doctors/:id/detail', element: <DoctorDetailPage /> },
       { path: 'doctors/availabilities', element: <DoctorAvailabilitiesPage /> },
       {
         path: '*',
