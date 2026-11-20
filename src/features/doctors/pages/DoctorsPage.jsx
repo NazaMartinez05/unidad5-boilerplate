@@ -151,8 +151,14 @@ function DoctorsPage() {
                   <tr key={doctor.id} className="hover:bg-hover">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-sm font-bold text-accent">
-                          {getInitials(doctor.name)}
+                        <span className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-sm font-bold text-accent">
+                         {getInitials(doctor.name)}
+                         <span
+                          title={doctor.isActive ? 'Activo' : 'Inactivo'}
+                          className={`absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-white ${
+                          doctor.isActive ? 'bg-emerald-500' : 'bg-danger'
+                         }`}
+                         />
                         </span>
                         <div>
                           <p className="font-semibold text-ink-strong">{doctor.name}</p>
