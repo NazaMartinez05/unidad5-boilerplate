@@ -10,7 +10,7 @@ export async function loginPatient({ email, dni }) {
 
 export async function getDoctor(pageSize, pageIndex) {
   const response = await apiClient.get(`/api/doctors?pageSize=${pageSize}&pageIndex=${pageIndex}`);
-  console.log("response",response);
+  console.log("response", response);
   return response?.data?.data;
 }
 
@@ -35,11 +35,11 @@ const pad = (number) => String(number).padStart(2, '0')
 // The backend sends SlotDate.ToString(), which depends on the server culture:
 // "11/24/2026" (en-US, M/d/yyyy) or "2026-11-24". Returns "YYYY-MM-DD".
 function toIsoDate(value) {
-  const text = String(value).trim()
+  const text = String(value ?? '').trim()
   const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`
-  const slashed = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
-  if (slashed) return `${slashed[3]}-${pad(slashed[1])}-${pad(slashed[2])}`
+  const slashed = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/) // d/M/yyyy (es-AR)
+  if (slashed) return `${slashed[3]}-${pad(slashed[2])}-${pad(slashed[1])}`
   return null
 }
 
@@ -59,7 +59,9 @@ function toTime(value) {
 // Returns [{ id, date: "YYYY-MM-DD", time: "HH:mm", endTime: "HH:mm" }] sorted by date and time.
 export async function getDoctorAvailabilities(doctorId) {
   const response = await apiClient.get(`/api/doctors/${doctorId}/availabilities`)
+  console.log('RAW', response.data)
   const items = Array.isArray(response.data) ? response.data : []
+  console.log('MAPPED', items.map(i => ({ day: i.day, start: i.startTime, date: toIsoDate(i.day), time: toTime(i.startTime) })))
 
   return items
     .map((item) => ({
@@ -94,10 +96,11 @@ const mapAppointment = (a) => ({
 })
 
 export async function getMyAppointments() {
-  const response = await apiClient.get('/api/appointments/me')
+  const { dni } = getSession()
+  const response = await apiClient.get('/api/appointments/patient')
   return (response.data.data ?? response.data).map(mapAppointment)
 }
 
 export async function cancelAppointment(id) {
-  await apiClient.delete('/api/appointments/{id}')  
+  await apiClient.delete('/api/appointments/${id}')
 }
