@@ -1,7 +1,6 @@
 import { Outlet } from 'react-router-dom'
-import PatientNavbar from '../organisms/PatientNavbar'
 
-// Layout for patient-facing pages (no admin sidebar)
+// Layout for the patient portal access pages (login): navy background, no navbar
 function PatientLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-navy">

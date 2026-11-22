@@ -12,7 +12,6 @@ import { addDays, getWeekStart, getWorkWeek, isPastSlot, toIsoDate } from '../..
 import {
   createAppointment,
   getAllDoctors,
-  getAllSpecialities,
   getDoctorAvailabilities,
 } from '../services/patientService'
 
@@ -20,14 +19,16 @@ import {
 // (at least 5 characters). Replace with a form field if one is added.
 const DEFAULT_REASON = 'Consulta médica'
 
-// Unique specialities taken from the doctors list (fallback when the
-// specialities endpoint can't be used)
+// Unique specialities of the active doctors. GET /api/specialties/allSpeciality
+// is admin-only (403 for a patient), and the doctors list already has them.
 function getSpecialitiesFromDoctors(doctors) {
   const map = new Map()
   doctors.forEach((d) => {
-    if (d.speciality?.specialityId) map.set(d.speciality.specialityId, d.speciality.name)
+    if (d.isActive && d.speciality?.specialityId) map.set(d.speciality.specialityId, d.speciality.name)
   })
-  return [...map].map(([id, name]) => ({ id, name }))
+  return [...map]
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
 const alertClass = 'rounded-md border px-4 py-3 text-sm'
@@ -37,7 +38,6 @@ function PatientCheckDoctor() {
   const [weekStart, setWeekStart] = useState(currentWeekStart)//guarda el lunes de la semana que se esta viendo
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [doctors, setDoctors] = useState([])
-  const [specialities, setSpecialities] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [specialityId, setSpecialityId] = useState('')
@@ -47,23 +47,16 @@ function PatientCheckDoctor() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
 
-  // Carga los combos al entrar a la pagina
+  // Carga los doctores al entrar a la pagina (una sola llamada: las especialidades salen de ahi)
   useEffect(() => {
     getAllDoctors()
-      .then(async (doctorList) => {
-        setDoctors(doctorList)
-        try {
-          setSpecialities(await getAllSpecialities())
-        } catch {
-          // Si el endpoint de especialidades no esta permitido para el paciente,
-          // se arman a partir de los doctores
-          setSpecialities(getSpecialitiesFromDoctors(doctorList))
-        }
-      })
+      .then(setDoctors)
       .catch((error) => {
         setErrorMessage(getApiErrorMessage(error, 'No se pudieron cargar los doctores y especialidades.'))
       })
   }, [])
+
+  const specialities = useMemo(() => getSpecialitiesFromDoctors(doctors), [doctors])
 
   const specialityOptions = useMemo(
     () => [
@@ -162,10 +155,10 @@ function PatientCheckDoctor() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
-      <section className="rounded-lg border border-field-line bg-surface p-6 sm:p-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 md:gap-5">
+      <section className="rounded-xl border border-field-line bg-surface p-5 sm:p-8 md:rounded-lg">
         <h1 className="text-2xl font-bold text-brand sm:text-3xl">Reservar Turno Médico</h1>
-        <p className="mt-1 mb-6 text-sm text-ink">Seleccione la especialidad y el profesional para continuar.</p>
+        <p className="mt-1 mb-5 text-sm text-ink md:mb-6">Seleccione la especialidad y el profesional para continuar.</p>
 
         <div className="grid items-end gap-4 md:grid-cols-[1fr_1fr_auto]">
           <FormField label="Seleccionar Especialidad" htmlFor="speciality">
@@ -187,7 +180,7 @@ function PatientCheckDoctor() {
             />
           </FormField>
 
-          <Button onClick={handleSearch} disabled={!doctorId} className="py-2.5">
+          <Button onClick={handleSearch} disabled={!doctorId} className="w-full py-2.5 md:w-auto">
             <Icon name="search" size={16} strokeWidth={2} />
             Buscar Disponibilidad
           </Button>

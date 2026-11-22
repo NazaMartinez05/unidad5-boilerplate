@@ -5,7 +5,7 @@ import Icon from '../../../components/atoms/Icon'
 // doctor: { name, licenseNumber, isActive, speciality: { name } } (GET /api/doctors/allDoctors)
 function DoctorCard({ doctor }) {
   return (
-    <article className="flex items-center gap-4 rounded-lg border border-line bg-surface px-5 py-4">
+    <article className="flex items-center gap-4 rounded-xl border border-line bg-surface px-4 py-4 md:rounded-lg md:px-5">
       <div className="relative shrink-0">
         <span
           aria-hidden="true"
@@ -26,8 +26,11 @@ function DoctorCard({ doctor }) {
           <h2 className="text-lg font-bold text-brand">{doctor?.name}</h2>
           {doctor?.isActive && <Badge variant="info">Verificado</Badge>}
         </div>
-        <p className="text-sm font-semibold text-ink">{doctor?.speciality?.name}</p>
-        {doctor?.licenseNumber && <p className="text-xs text-ink-soft">Matrícula N° {doctor.licenseNumber}</p>}
+        {/* Mobile: speciality in small caps, like the design */}
+        <p className="text-xs font-bold tracking-wide text-brand uppercase md:text-sm md:font-semibold md:tracking-normal md:text-ink md:normal-case">
+          {doctor?.speciality?.name}
+        </p>
+        {doctor?.licenseNumber && <p className="truncate text-xs text-ink-soft">Matrícula N° {doctor.licenseNumber}</p>}
       </div>
     </article>
   )

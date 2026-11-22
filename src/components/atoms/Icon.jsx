@@ -41,12 +41,6 @@ const ICONS = {
       <path d="M3 7l9 6 9-6" />
     </>
   ),
-  lock: (
-  <>
-    <rect x="4" y="11" width="16" height="10" rx="2" />
-    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-  </>
-),
   idCard: (
     <>
       <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -59,12 +53,6 @@ const ICONS = {
     <>
       <rect x="4" y="11" width="16" height="10" rx="2" />
       <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </>
-  ),
-  eye: (
-    <>
-      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
-      <circle cx="12" cy="12" r="3" />
     </>
   ),
   eyeOff: (
@@ -83,20 +71,6 @@ const ICONS = {
     <>
       <circle cx="11" cy="11" r="7" />
       <path d="M21 21l-4.3-4.3" />
-    </>
-  ),
-    edit: (
-    <>
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z" />
-    </>
-  ),
-  trash: (
-    <>
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v5M14 11v5" />
     </>
   ),
   heart: (
@@ -169,6 +143,28 @@ smile: (
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  // Restored: lost in a merge but still used (DoctorCard, AppointmentsTable, AppointmentFilters)
+  stethoscope: (
+    <>
+      <path d="M5 3v5a4 4 0 0 0 8 0V3" />
+      <path d="M9 12v3a5 5 0 0 0 10 0v-2" />
+      <circle cx="19" cy="11" r="2" />
+    </>
+  ),
+  filter: <path d="M3 5h18M6 12h12M10 19h4" />,
+  refresh: (
+    <>
+      <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" />
+      <path d="M21 3v5h-5" />
+    </>
+  ),
+  alertTriangle: (
+    <>
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+      <path d="M12 9v4M12 17h.01" />
+    </>
+  ),
+  close: <path d="M18 6 6 18M6 6l12 12" />,
 
   eye: (
     <>

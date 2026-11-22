@@ -1,4 +1,6 @@
 import { apiClient } from '../../../services/apiClient'
+import { getSession } from '../../../services/session'
+import { parseSlotDate, parseSlotTime } from '../../../utils/schedule'
 
 // POST /api/auth/patient/login
 // Si el DNI no esta registrado, se crea el paciente automaticamente.
@@ -8,12 +10,6 @@ export async function loginPatient({ email, dni }) {
   return response.data
 }
 
-export async function getDoctor(pageSize, pageIndex) {
-  const response = await apiClient.get(`/api/doctors?pageSize=${pageSize}&pageIndex=${pageIndex}`);
-  console.log("response", response);
-  return response?.data?.data;
-}
-
 // GET /api/doctors/allDoctors (not paginated)
 // -> [{ id, name, licenseNumber, isActive, speciality: { specialityId, name } }]
 export async function getAllDoctors() {
@@ -21,54 +17,19 @@ export async function getAllDoctors() {
   return Array.isArray(response.data) ? response.data : []
 }
 
-// GET /api/specialties/allSpeciality (not paginated) -> [{ id, name, description }]
-// Note: today the backend only allows admins here, so a patient token gets 401/403.
-export async function getAllSpecialities() {
-  const response = await apiClient.get('/api/specialties/allSpeciality')
-  return Array.isArray(response.data) ? response.data : []
-}
-
-// TODO: GET /api/doctors/{id}/availabilities. For now no slots are returned.
-// eslint-disable-next-line no-unused-vars
-const pad = (number) => String(number).padStart(2, '0')
-
-// The backend sends SlotDate.ToString(), which depends on the server culture:
-// "11/24/2026" (en-US, M/d/yyyy) or "2026-11-24". Returns "YYYY-MM-DD".
-function toIsoDate(value) {
-  const text = String(value ?? '').trim()
-  const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`
-  const slashed = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/) // d/M/yyyy (es-AR)
-  if (slashed) return `${slashed[3]}-${pad(slashed[2])}-${pad(slashed[1])}`
-  return null
-}
-
-// StartTime.ToString(): "8:30 AM" (en-US), "08:30" or "08:30:00". Returns "HH:mm".
-function toTime(value) {
-  const match = String(value).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?$/)
-  if (!match) return null
-  let hours = Number(match[1])
-  const period = match[3]?.toUpperCase()
-  if (period === 'PM' && hours < 12) hours += 12
-  if (period === 'AM' && hours === 12) hours = 0
-  return `${pad(hours)}:${match[2]}`
-}
-
 // GET /api/doctors/{id}/availabilities (patient token)
 // -> [{ id, day, startTime, endTime }], one item per free slot.
 // Returns [{ id, date: "YYYY-MM-DD", time: "HH:mm", endTime: "HH:mm" }] sorted by date and time.
 export async function getDoctorAvailabilities(doctorId) {
   const response = await apiClient.get(`/api/doctors/${doctorId}/availabilities`)
-  console.log('RAW', response.data)
   const items = Array.isArray(response.data) ? response.data : []
-  console.log('MAPPED', items.map(i => ({ day: i.day, start: i.startTime, date: toIsoDate(i.day), time: toTime(i.startTime) })))
 
   return items
     .map((item) => ({
       id: item.id,
-      date: toIsoDate(item.day),
-      time: toTime(item.startTime),
-      endTime: toTime(item.endTime),
+      date: parseSlotDate(item.day, item.startTime),
+      time: parseSlotTime(item.startTime),
+      endTime: parseSlotTime(item.endTime),
     }))
     .filter((slot) => slot.id && slot.date && slot.time)
     .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
@@ -86,21 +47,36 @@ export async function createAppointment({ doctorId, availabilitySlotId, dni, rea
   return response.data
 }
 
-const mapAppointment = (a) => ({
-  id: a.id,
-  speciality: a.doctor?.speciality?.name,
-  doctorName: a.doctor?.name,
-  date: a.dateTime.slice(0, 10),     // "2026-10-28"
-  time: a.dateTime.slice(11, 16),    // "10:30"
-  status: a.status.toLowerCase(),    // "confirmed" / "pending"
-})
-
-export async function getMyAppointments() {
-  const { dni } = getSession()
-  const response = await apiClient.get('/api/appointments/patient')
-  return (response.data.data ?? response.data).map(mapAppointment)
+// Backend AppointmentStatus -> the status keys AppointmentCard knows
+const APPOINTMENT_STATUS = {
+  booked: 'confirmed',
+  pending: 'pending',
 }
 
+// Today GET /api/appointments/patient only returns
+// { id, availabilitySlotId, reason, status }. Doctor, speciality, date and
+// time stay null until the backend adds them (dateTime or date + startTime).
+const mapAppointment = (a) => ({
+  id: a.id,
+  speciality: a.doctor?.speciality?.name ?? null,
+  doctorName: a.doctor?.name ?? null,
+  date: a.dateTime?.slice(0, 10) ?? (a.date ? parseSlotDate(a.date, a.startTime) : null), // "2026-10-28"
+  time: a.dateTime?.slice(11, 16) ?? (a.startTime ? parseSlotTime(a.startTime) : null), // "10:30"
+  reason: a.reason ?? '',
+  status: APPOINTMENT_STATUS[String(a.status ?? '').toLowerCase()] ?? 'pending',
+})
+
+// GET /api/appointments/patient?dni= (patient token). The dni is saved at login.
+export async function getMyAppointments() {
+  const { dni } = getSession()
+  if (!dni) throw new Error('No hay DNI en la sesión. Inicie sesión nuevamente.')
+
+  const response = await apiClient.get('/api/appointments/patient', { params: { dni } })
+  const items = response.data?.data ?? response.data
+  return Array.isArray(items) ? items.map(mapAppointment) : []
+}
+
+// DELETE /api/appointments/{id} (patient token)
 export async function cancelAppointment(id) {
-  await apiClient.delete('/api/appointments/${id}')
+  await apiClient.delete(`/api/appointments/${id}`)
 }

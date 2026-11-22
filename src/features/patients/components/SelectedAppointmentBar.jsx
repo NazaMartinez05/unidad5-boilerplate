@@ -7,13 +7,15 @@ function SelectedAppointmentBar({ slot, endTime, isConfirming = false, onConfirm
   const duration = slot && endTime ? minutesBetween(slot.time, endTime) : null
 
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-highlight-line bg-highlight px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="flex flex-col gap-4 rounded-xl border border-highlight-line bg-highlight px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:rounded-lg sm:px-6">
       <div className="border-l-4 border-brand pl-4">
         <p className="mb-1 text-[11px] font-semibold tracking-wide text-ink uppercase">Resumen de selección</p>
         {slot ? (
           <>
-            <p className="flex items-center gap-2 text-lg font-bold text-ink-strong">
-              <Icon name="calendar" size={18} />
+            <p className="flex items-start gap-2 text-lg leading-snug font-bold text-ink-strong sm:items-center">
+              <span className="mt-1 shrink-0 sm:mt-0">
+                <Icon name="calendar" size={18} />
+              </span>
               {formatLongDate(slot.date, { withYear: true })}, {slot.time} HS
             </p>
             {duration > 0 && <p className="text-xs text-ink-soft">Duración: {duration} min</p>}
@@ -23,7 +25,7 @@ function SelectedAppointmentBar({ slot, endTime, isConfirming = false, onConfirm
         )}
       </div>
 
-      <Button onClick={onConfirm} disabled={!slot || isConfirming} className="px-8 sm:text-base">
+      <Button onClick={onConfirm} disabled={!slot || isConfirming} className="w-full px-8 sm:w-auto sm:text-base">
         {isConfirming ? 'Confirmando...' : 'Confirmar Turno'}
         {!isConfirming && <Icon name="checkCircle" size={18} strokeWidth={2} />}
       </Button>

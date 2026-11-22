@@ -13,6 +13,10 @@ export function saveSession({ token, role, email, dni }) {
   else localStorage.removeItem('dni')
 }
 
+export function clearSession() {
+  ;['token', 'role', 'email', 'dni'].forEach((key) => localStorage.removeItem(key))
+}
+
 export function getSession() {
   return {
     token: localStorage.getItem('token'),

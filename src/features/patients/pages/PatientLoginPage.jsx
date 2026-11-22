@@ -60,7 +60,7 @@ function PatientLoginPage() {
         </div>
       </section>
 
-      <Link to="/dashboard" className="mt-6 text-xs text-white/70 hover:text-white hover:underline">
+      <Link to="/admin/login" className="mt-6 text-xs text-white/70 hover:text-white hover:underline">
         ¿Es personal administrativo o médico? Ingrese aquí →
       </Link>
     </div>
