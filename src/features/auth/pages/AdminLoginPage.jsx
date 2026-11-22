@@ -29,7 +29,8 @@ function AdminLoginPage() {
       localStorage.setItem('token', token)
       localStorage.setItem('role', role)
 
-      navigate('/', { replace: true })
+      // '/' redirects to the patient login, so go straight to the admin panel
+      navigate('/dashboard', { replace: true })
 
     } catch (error) {
       setErrorMessage(

@@ -73,7 +73,7 @@ function AppointmentFilters({ specialities, doctors, appliedFilters, lastUpdate,
           <TextInput
             id="dni"
             icon="search"
-             inputMode="numeric"
+            inputMode="numeric"
             placeholder="Ej: 40123456"
             hasError={!!errors.dni}
             {...register('dni', {

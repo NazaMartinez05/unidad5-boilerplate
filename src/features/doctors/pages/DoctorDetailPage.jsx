@@ -13,7 +13,6 @@ const DAYS = [
   { value: 'JUEVES', label: 'Jueves' },
   { value: 'VIERNES', label: 'Viernes' },
   { value: 'SABADO', label: 'Sábado' },
-  { value: 'DOMINGO', label: 'Domingo' },
 ]
 
 // "Elena Martínez" → "EM"

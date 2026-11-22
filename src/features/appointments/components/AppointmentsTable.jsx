@@ -31,7 +31,7 @@ function AppointmentsTable({ appointments, total, page, totalPages, isLoading = 
           </thead>
 
           <tbody className="divide-y divide-line">
-           {isLoading && (
+            {isLoading && (
               <tr>
                 <td colSpan={4} className="px-6 py-10 text-center text-sm text-ink-soft">
                   Cargando citas...
@@ -47,18 +47,18 @@ function AppointmentsTable({ appointments, total, page, totalPages, isLoading = 
               </tr>
             )}
 
-             {!isLoading && appointments.map((appointment) => {
+            {!isLoading && appointments.map((appointment) => {
               const status = STATUSES[appointment.status] ?? { label: appointment.status ?? EMPTY, variant: 'neutral' }
               const { doctor, patient } = appointment
 
               return (
                 <tr key={appointment.appointmentId} className="transition-colors hover:bg-canvas">
                   <td className="px-6 py-3">
-                       <p className="text-sm font-semibold text-ink-strong">
+                    <p className="text-sm font-semibold text-ink-strong">
                       {appointment.date ? formatShortDate(appointment.date) : EMPTY}
                     </p>
                     {/* startTime comes as "HH:mm:ss" */}
-                     {appointment.startTime && (
+                    {appointment.startTime && (
                       <p className="text-xs text-ink-soft">{appointment.startTime.slice(0, 5)} HS</p>
                     )}
                   </td>
@@ -75,11 +75,12 @@ function AppointmentsTable({ appointments, total, page, totalPages, isLoading = 
                     </div>
                   </td>
 
-                 <td className="px-6 py-3">
-                  <p className="text-sm font-semibold text-ink-strong">
-                   {patient?.dni ? Number(patient.dni).toLocaleString('es-AR') : EMPTY}
-                    </p>
-                </td>
+                  <td className="px-6 py-3">
+                    <p className="text-sm font-semibold text-ink-strong">{patient?.fullName ?? EMPTY}</p>
+                    {patient?.dni && (
+                      <p className="text-xs text-ink-soft">DNI: {Number(patient.dni).toLocaleString('es-AR')}</p>
+                    )}
+                  </td>
 
                   <td className="px-6 py-3">
                     <Badge variant={status.variant} withDot>

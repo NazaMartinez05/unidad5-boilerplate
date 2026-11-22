@@ -4,7 +4,7 @@ import AppointmentFilters from '../components/AppointmentFilters'
 import AppointmentsTable from '../components/AppointmentsTable'
 import { DEFAULT_PAGE_SIZE, getDoctors, getSpecialities, searchAppointments } from '../services/appointmentService'
 
-
+// Same names as the inputs of AppointmentFilters. '' = "no filter".
 const EMPTY_FILTERS = { dni: '', specialityId: '', doctorId: '', date: '' }
 
 function getErrorMessage(error, fallback) {
@@ -12,15 +12,15 @@ function getErrorMessage(error, fallback) {
   if (status === 401 || status === 403) {
     return 'No tiene permisos para ver las citas. Inicie sesión como administrador.'
   }
- return getApiErrorMessage(error, fallback)
+  return getApiErrorMessage(error, fallback)
 }
 
 function AppointmentSearchPage() {
-   const [specialities, setSpecialities] = useState([])
+  const [specialities, setSpecialities] = useState([])
   const [doctors, setDoctors] = useState([])
   const [filters, setFilters] = useState(EMPTY_FILTERS)
   const [page, setPage] = useState(1)
-    // key: the filters + page this result belongs to
+  // key: the filters + page this result belongs to
   const [result, setResult] = useState({ key: null, appointments: [], total: 0, error: '' })
   const [catalogError, setCatalogError] = useState('')
   const [lastUpdate, setLastUpdate] = useState(new Date())
@@ -37,7 +37,7 @@ function AppointmentSearchPage() {
       })
   }, [])
 
-   // Table: reloaded every time the filters or the page change.
+  // Table: reloaded every time the filters or the page change.
   // With no filters (on entering the page) it shows every appointment.
   const requestKey = `${page}|${JSON.stringify(filters)}`
   useEffect(() => {
@@ -74,7 +74,6 @@ function AppointmentSearchPage() {
     setFilters(newFilters)
     setPage(1)
   }
-
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">

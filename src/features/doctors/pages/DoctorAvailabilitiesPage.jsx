@@ -11,7 +11,7 @@ import {
   getDoctorAvailabilities,
   updateAvailability,
 } from '../services/doctorsService'
-import { summarizeSlots } from '../../../utils/schedule'
+import { SLOT_MINUTES, summarizeSlots, toMinutes } from '../../../utils/schedule'
 
 // Los días como los espera el back (DayHelper acepta con y sin tilde)
 const DAYS = [
@@ -21,7 +21,6 @@ const DAYS = [
   { value: 'JUEVES', label: 'Jueves' },
   { value: 'VIERNES', label: 'Viernes' },
   { value: 'SÁBADO', label: 'Sábado' },
-  { value: 'DOMINGO', label: 'Domingo' },
 ]
 
 // "MIÉRCOLES" → "MIERCOLES", para comparar sin importar tildes
@@ -41,7 +40,18 @@ const getInitials = (name) =>
     .join('')
 
 const timeInputClass =
-  'w-full min-w-28 rounded-md border border-field-line bg-surface px-2.5 py-2 text-sm text-ink-strong outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 disabled:border-line disabled:bg-canvas disabled:text-ink-soft/50'
+  'w-full min-w-28 cursor-pointer rounded-md border border-field-line bg-surface px-2.5 py-2 text-sm text-ink-strong outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-canvas disabled:text-ink-soft/50'
+
+// "00:00", "00:30" ... "23:30": always 24 h (a native time input shows AM/PM
+// depending on the OS/browser language) and only 30-minute steps
+const TIME_OPTIONS = Array.from({ length: (24 * 60) / SLOT_MINUTES }, (_, index) => {
+  const minutes = index * SLOT_MINUTES
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+})
+
+// A saved time that is not in the list (e.g. "08:15") is still shown
+const getTimeOptions = (current) =>
+  current && !TIME_OPTIONS.includes(current) ? [...TIME_OPTIONS, current].sort() : TIME_OPTIONS
 
 function DoctorAvailabilitiesPage() {
   const navigate = useNavigate()
@@ -125,6 +135,16 @@ function DoctorAvailabilitiesPage() {
     const invalid = days.find((day) => !day.startTime || !day.endTime || day.startTime >= day.endTime)
     if (invalid) {
       setErrorMessage(`Revise el ${invalid.day.toLowerCase()}: la hora de entrada debe ser anterior a la de salida.`)
+      return
+    }
+    // Turnos de 30 minutos: entrada y salida en punto o y media (08:00, 08:30...)
+    const offSlot = days.find(
+      (day) => toMinutes(day.startTime) % SLOT_MINUTES !== 0 || toMinutes(day.endTime) % SLOT_MINUTES !== 0,
+    )
+    if (offSlot) {
+      setErrorMessage(
+        `Revise el ${offSlot.day.toLowerCase()}: los horarios deben ser en punto o y media (rangos de ${SLOT_MINUTES} minutos).`,
+      )
       return
     }
 
@@ -265,26 +285,34 @@ function DoctorAvailabilitiesPage() {
                           </div>
                         </td>
                         <td className="px-5 py-3">
-                          <input
-                            type="time"
-                            step="1800"
+                          <select
                             aria-label={`Hora de entrada del ${day.label}`}
                             value={daySchedule.startTime}
                             disabled={!daySchedule.enabled}
                             onChange={(event) => updateDay(day.value, 'startTime', event.target.value)}
                             className={timeInputClass}
-                          />
+                          >
+                            {getTimeOptions(daySchedule.startTime).map((time) => (
+                              <option key={time} value={time}>
+                                {time}
+                              </option>
+                            ))}
+                          </select>
                         </td>
                         <td className="px-5 py-3">
-                          <input
-                            type="time"
-                            step="1800"
+                          <select
                             aria-label={`Hora de salida del ${day.label}`}
                             value={daySchedule.endTime}
                             disabled={!daySchedule.enabled}
                             onChange={(event) => updateDay(day.value, 'endTime', event.target.value)}
                             className={timeInputClass}
-                          />
+                          >
+                            {getTimeOptions(daySchedule.endTime).map((time) => (
+                              <option key={time} value={time}>
+                                {time}
+                              </option>
+                            ))}
+                          </select>
                         </td>
                       </tr>
                     )

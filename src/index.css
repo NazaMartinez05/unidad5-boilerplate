@@ -21,6 +21,16 @@
   --color-field: #eef5fc;
   --color-field-line: #c7d7e9;
   --color-highlight: #e1edf9;
+  /* Used by the booking grid, the selection summary and the green badges.
+     Without them those classes (bg-mint, border-highlight-line...) render no color. */
+  --color-highlight-line: #d3e2f2;
+  --color-mint: #5ac48d;
+  --color-mint-soft: #e3f6ec;
+  --color-mint-dark: #23824f;
+  --color-online: #22c55e;
+  --color-navy: #0a2440;
+  --color-navy-button: #0d3557;
+  --color-navy-button-hover: #0a2a46;
 
   --radius-nav: 10px;
 

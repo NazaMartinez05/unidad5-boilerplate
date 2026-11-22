@@ -46,7 +46,10 @@ function toAppointment(item) {
         }
       : null,
     patient: patient
-      ? { dni: patient.dni }
+      ? {
+          dni: patient.dni,
+          fullName: patient.fullname ?? patient.fullName,
+        }
       : null,
   }
 }
