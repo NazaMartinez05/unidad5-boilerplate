@@ -12,7 +12,6 @@ const STATUSES = {
 }
 
 const EMPTY = '—'
-
 // appointments: only the ones of the current page. total: all the filtered ones.
 // date, startTime, doctor and patient may be null (the backend does not send them yet).
 function AppointmentsTable({ appointments, total, page, totalPages, isLoading = false, onPageChange }) {

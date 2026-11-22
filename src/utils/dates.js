@@ -65,6 +65,12 @@ export function formatShortDate(isoDate) {
   return `${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}, ${date.getFullYear()}`
 }
 
+// "2026-10-24" (backend / date input format) -> "24 Oct, 2026"
+export function formatShortDate(isoDate) {
+  const date = new Date(`${isoDate}T00:00`)
+  return `${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}, ${date.getFullYear()}`
+}
+
 export function getShortDayName(date) {
   return SHORT_DAY_NAMES[date.getDay()]
 }
