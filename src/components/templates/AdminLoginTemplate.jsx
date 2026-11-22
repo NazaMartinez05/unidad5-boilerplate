@@ -1,6 +1,7 @@
 
 import { Link } from 'react-router-dom'
 import Logo from '../atoms/Logo'
+import Alert from '../atoms/Alert'
 
 function AdminLoginTemplate({ errorMessage, children }) {
   return (
@@ -28,14 +29,7 @@ function AdminLoginTemplate({ errorMessage, children }) {
             </p>
           </div>
 
-          {errorMessage && (
-            <p
-              role="alert"
-              className="mb-5 rounded-md border border-danger/30 bg-danger/10 px-3 py-3 text-sm text-danger"
-            >
-              {errorMessage}
-            </p>
-          )}
+          <Alert className="mb-5 py-3">{errorMessage}</Alert>
 
           {children}
 

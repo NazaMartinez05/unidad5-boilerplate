@@ -1,6 +1,9 @@
 import { apiClient } from '../../../services/apiClient'
-import { getSession } from '../../../services/session'
 import { parseSlotDate, parseSlotTime } from '../../../utils/schedule'
+import { getDoctorAvailabilities as getRawAvailabilities } from '../../doctors/services/doctorsService'
+
+// Same endpoint the admin uses: one implementation, in the doctors feature
+export { getAllDoctors } from '../../doctors/services/doctorsService'
 
 // POST /api/auth/patient/login
 // Si el DNI no esta registrado, se crea el paciente automaticamente.
@@ -10,19 +13,12 @@ export async function loginPatient({ email, dni }) {
   return response.data
 }
 
-// GET /api/doctors/allDoctors (not paginated)
-// -> [{ id, name, licenseNumber, isActive, speciality: { specialityId, name } }]
-export async function getAllDoctors() {
-  const response = await apiClient.get('/api/doctors/allDoctors')
-  return Array.isArray(response.data) ? response.data : []
-}
-
-// GET /api/doctors/{id}/availabilities (patient token)
-// -> [{ id, day, startTime, endTime }], one item per free slot.
-// Returns [{ id, date: "YYYY-MM-DD", time: "HH:mm", endTime: "HH:mm" }] sorted by date and time.
+// Free slots of a doctor for the booking grid. Reuses the doctors feature call
+// (GET /api/doctors/{id}/availabilities -> [{ id, day, startTime, endTime }]) and
+// returns [{ id, date: "YYYY-MM-DD", time: "HH:mm", endTime: "HH:mm" }] sorted by date and time.
 export async function getDoctorAvailabilities(doctorId) {
-  const response = await apiClient.get(`/api/doctors/${doctorId}/availabilities`)
-  const items = Array.isArray(response.data) ? response.data : []
+  const data = await getRawAvailabilities(doctorId)
+  const items = Array.isArray(data) ? data : []
 
   return items
     .map((item) => ({
@@ -66,9 +62,8 @@ const mapAppointment = (a) => ({
   status: APPOINTMENT_STATUS[String(a.status ?? '').toLowerCase()] ?? 'pending',
 })
 
-// GET /api/appointments/patient?dni= (patient token). The dni is saved at login.
-export async function getMyAppointments() {
-  const { dni } = getSession()
+// GET /api/appointments/patient?dni= (patient token). The page passes the dni of the session.
+export async function getMyAppointments(dni) {
   if (!dni) throw new Error('No hay DNI en la sesión. Inicie sesión nuevamente.')
 
   const response = await apiClient.get('/api/appointments/patient', { params: { dni } })

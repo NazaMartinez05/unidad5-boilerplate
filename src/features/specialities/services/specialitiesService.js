@@ -1,5 +1,11 @@
-
 import { apiClient } from '../../../services/apiClient'
+
+// GET /api/specialties/allSpeciality  (todas, sin paginar: para los desplegables; solo admin)
+// Devuelve [{ id, name, description }]. Single implementation: doctors and appointments reuse it.
+export async function getAllSpecialities() {
+  const response = await apiClient.get('/api/specialties/allSpeciality')
+  return Array.isArray(response.data) ? response.data : []
+}
 
 // GET: listar especialidades
 export async function getSpecialities({

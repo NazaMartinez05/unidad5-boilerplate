@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import Icon from '../../../components/atoms/Icon'
 import ConfirmModal from '../../../components/organisms/ConfirmModal'
 import { getApiErrorMessage } from '../../../services/apiClient'
+import { useAuth } from '../../auth/hooks/useAuth'
 import AppointmentCard from '../components/AppointmentCard'
+import Alert from '../../../components/atoms/Alert'
 import { getMyAppointments, cancelAppointment } from '../services/patientService'
 
 function PatientAppointmentPage() {
   const navigate = useNavigate()
+  const { dni } = useAuth()
   const [appointments, setAppointments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -17,7 +20,7 @@ function PatientAppointmentPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        setAppointments(await getMyAppointments())
+        setAppointments(await getMyAppointments(dni))
       } catch (err) {
         // Backend message if there is one, else ours (e.g. no DNI in the session)
         setError(getApiErrorMessage(err, err.response ? 'No se pudieron cargar los turnos.' : err.message))
@@ -26,7 +29,7 @@ function PatientAppointmentPage() {
       }
     }
     load()
-  }, [])
+  }, [dni])
 
   // "Cancelar Turno" on a card: open the confirmation modal
   const handleCancel = (id) => {
@@ -68,11 +71,7 @@ function PatientAppointmentPage() {
         </button>
       </header>
 
-      {error && (
-        <p role="alert" className="mb-5 rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-          {error}
-        </p>
-      )}
+      <Alert className="mb-5 px-4 py-3">{error}</Alert>
 
       {isLoading ? (
         <p className="rounded-lg border border-line bg-surface p-8 text-center text-sm text-ink-soft">

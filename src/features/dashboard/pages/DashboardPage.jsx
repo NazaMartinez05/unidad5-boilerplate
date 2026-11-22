@@ -1,7 +1,7 @@
-
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../../components/atoms/Icon'
+import { usePaginatedList } from '../../../hooks/usePaginatedList'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import Button from '../../../components/atoms/Button'
 import TextInput from '../../../components/atoms/TextInput'
@@ -13,79 +13,39 @@ import {
 } from '../services/dashboardService'
 
 function DashboardPage() {
-  const [doctors, setDoctors] = useState([])
-  const [doctorTotal, setDoctorTotal] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 5
-  const totalPages = Math.ceil((doctorTotal ?? 0) / pageSize)
-  const [specialityTotal, setSpecialityTotal] = useState(null)
+  // Doctors list (pagination, search, loading) lives in the hook
+  const list = usePaginatedList(getDashboardDoctors, { pageSize: 5 })
+  const doctors = list.items
+  const doctorTotal = list.hasLoaded && !list.error ? list.total : null
+  const doctorError = list.error
+  const isLoading = list.isLoading
+  const currentPage = list.pageIndex
+  const setCurrentPage = list.goToPage
+  const totalPages = list.totalPages
+  const searchName = list.search
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [doctorError, setDoctorError] = useState('')
+  // Specialities card: only the total, loaded once
+  const [specialityTotal, setSpecialityTotal] = useState(null)
   const [specialityError, setSpecialityError] = useState('')
 
-  const [searchInput, setSearchInput] = useState('')
-  const [searchName, setSearchName] = useState('')
-  const [searchError, setSearchError] = useState('')
-
   useEffect(() => {
-    const loadDashboard = async () => {
-      setIsLoading(true)
-      setDoctorError('')
-      setSpecialityError('')
+    getDashboardSpecialities()
+      .then((page) => setSpecialityTotal(page.total))
+      .catch((error) => setSpecialityError(getApiErrorMessage(error)))
+  }, [])
 
-      const [doctorsResult, specialitiesResult] = await Promise.allSettled([
-        getDashboardDoctors({
-          pageSize,
-         pageIndex: currentPage,
-         name: searchName,
-         }),
-        getDashboardSpecialities(),
-      ])
-
-      if (doctorsResult.status === 'fulfilled') {
-        setDoctors(doctorsResult.value.data || [])
-        setDoctorTotal(doctorsResult.value.total)
-      } else {
-        setDoctorError(
-          getApiErrorMessage(doctorsResult.reason)
-        )
-      }
-
-      if (specialitiesResult.status === 'fulfilled') {
-        setSpecialityTotal(specialitiesResult.value.total)
-      } else {
-        setSpecialityError(
-          getApiErrorMessage(specialitiesResult.reason)
-        )
-      }
-
-      setIsLoading(false)
-    }
-
-    loadDashboard()
-  }, [searchName, currentPage])
+  const [searchInput, setSearchInput] = useState('')
+  const [searchError, setSearchError] = useState('')
 
   const handleSearch = (event) => {
     event.preventDefault()
-
-    const name = searchInput.trim()
-
-    if (name && name.length < 3) {
-      setSearchError('Ingrese al menos 3 caracteres para buscar.')
-      return
-    }
-
-    setSearchError('')
-    setCurrentPage(1)
-    setSearchName(name)
+    setSearchError(list.applySearch(searchInput))
   }
 
   const handleClearSearch = () => {
     setSearchInput('')
     setSearchError('')
-    setCurrentPage(1)
-    setSearchName('')
+    list.applySearch('')
   }
 
   return (

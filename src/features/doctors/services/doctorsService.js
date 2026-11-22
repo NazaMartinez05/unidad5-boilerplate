@@ -47,16 +47,13 @@ export async function updateAvailability(availability) {
   return response.data
 }
 
-// GET /api/doctors/allDoctors  (todos, sin paginar: para el desplegable de doctores)
+// GET /api/doctors/allDoctors  (todos, sin paginar: para los desplegables de doctores)
 // Devuelve [{ id, name, licenseNumber, isActive, speciality: { specialityId, name } }]
+// Single implementation: patients and appointments reuse it.
 export async function getAllDoctors() {
   const response = await apiClient.get('/api/doctors/allDoctors')
-  return response.data
+  return Array.isArray(response.data) ? response.data : []
 }
 
-// GET /api/specialties/allSpeciality  (todas, sin paginar: para el desplegable de especialidades)
-// Devuelve [{ id, name, description }]
-export async function getAllSpecialities() {
-  const response = await apiClient.get('/api/specialties/allSpeciality')
-  return response.data
-}
+// The specialities list lives in the specialities feature (DoctorFormPage imports it from here)
+export { getAllSpecialities } from '../../specialities/services/specialitiesService'

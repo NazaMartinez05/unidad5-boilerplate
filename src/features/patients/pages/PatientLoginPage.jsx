@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../../../components/atoms/Icon'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import PatientLoginForm from '../components/PatientLoginForm'
+import { useAuth } from '../../auth/hooks/useAuth'
 import { loginPatient } from '../services/patientService'
-import { saveSession } from '../../../services/session'
+import Alert from '../../../components/atoms/Alert'
 
 // Shown in the "Credenciales de prueba" box under the form
 const TEST_CREDENTIALS = {
@@ -15,12 +16,13 @@ const TEST_CREDENTIALS = {
 function PatientLoginPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleLogin = async (credentials) => {
     setErrorMessage('')
     try {
       const { token, role } = await loginPatient(credentials)
-      saveSession({ token, role, email: credentials.email, dni: credentials.dni })
+      login({ token, role, email: credentials.email, dni: credentials.dni })
       navigate('/patient-doctor')
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, 'No se pudo iniciar sesión. Intente nuevamente más tarde.'))
@@ -43,11 +45,7 @@ function PatientLoginPage() {
           Inicia sesión para reservar y consultar tus turnos médicos
         </p>
 
-        {errorMessage && (
-          <p role="alert" className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-            {errorMessage}
-          </p>
-        )}
+        <Alert className="mb-4">{errorMessage}</Alert>
 
         <PatientLoginForm onSubmit={handleLogin} />
 

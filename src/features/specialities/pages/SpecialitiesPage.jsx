@@ -1,6 +1,8 @@
-
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import Alert from '../../../components/atoms/Alert'
+import ConfirmModal from '../../../components/organisms/ConfirmModal'
+import { usePaginatedList } from '../../../hooks/usePaginatedList'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import {
   getSpecialities,
@@ -14,82 +16,40 @@ function SpecialitiesPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const [specialities, setSpecialities] = useState([])
-  const [pageIndex, setPageIndex] = useState(1)
-  const pageSize = 10
-  const [total, setTotal] = useState(0)
+  // Pagination, search and loading live in the hook; the page renders
+  const list = usePaginatedList(getSpecialities, { pageSize: 10 })
+  const { items: specialities, total, pageIndex, pageSize, totalPages, isLoading, search: searchName } = list
 
   const [searchInput, setSearchInput] = useState('')
-  const [searchName, setSearchName] = useState('')
-
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [actionError, setActionError] = useState('') // search validation or delete error
   const [successMessage, setSuccessMessage] = useState(
     location.state?.successMessage || ''
   )
   const [isDeleting, setIsDeleting] = useState(null)
-
-  const totalPages = Math.ceil(total / pageSize)
-
-  const loadSpecialities = async () => {
-    setIsLoading(true)
-    setErrorMessage('')
-
-    try {
-      const response = await getSpecialities({
-        pageSize,
-        pageIndex,
-        name: searchName,
-      })
-
-      setSpecialities(response.data || [])
-      setTotal(response.total || 0)
-    } catch (error) {
-      setErrorMessage(getApiErrorMessage(error))
-      setSpecialities([])
-      setTotal(0)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    loadSpecialities()
-  }, [pageIndex, searchName])
+  const errorMessage = actionError || list.error
 
   const handleSearch = (event) => {
     event.preventDefault()
-
-    const name = searchInput.trim()
-
-    if (name && name.length < 3) {
-      setErrorMessage('Ingrese al menos 3 caracteres para buscar.')
-      return
-    }
-
-    setErrorMessage('')
     setSuccessMessage('')
-    setPageIndex(1)
-    setSearchName(name)
+    setActionError(list.applySearch(searchInput))
   }
 
   const handleClearSearch = () => {
     setSearchInput('')
-    setSearchName('')
-    setPageIndex(1)
-    setErrorMessage('')
+    setActionError('')
     setSuccessMessage('')
+    list.applySearch('')
   }
 
-  const handleDelete = async (speciality) => {
-    const confirmed = window.confirm(
-      `¿Está seguro de que desea eliminar la especialidad "${speciality.name}"?`
-    )
+  // The table's delete button opens the confirmation modal
+  const [toDelete, setToDelete] = useState(null)
+  const closeModal = useCallback(() => setToDelete(null), [])
 
-    if (!confirmed) return
-
+  const confirmDelete = async () => {
+    const speciality = toDelete
+    setToDelete(null)
     setIsDeleting(speciality.id)
-    setErrorMessage('')
+    setActionError('')
     setSuccessMessage('')
 
     try {
@@ -97,15 +57,13 @@ function SpecialitiesPage() {
 
       setSuccessMessage('La especialidad se eliminó correctamente.')
 
-      setTotal((current) => Math.max(0, current - 1))
-
       if (specialities.length === 1 && pageIndex > 1) {
-        setPageIndex((current) => current - 1)
+        list.goToPage(pageIndex - 1)
       } else {
-        await loadSpecialities()
+        list.reload()
       }
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error))
+      setActionError(getApiErrorMessage(error))
     } finally {
       setIsDeleting(null)
     }
@@ -162,23 +120,10 @@ function SpecialitiesPage() {
         </Link>
       </div>
 
-      {errorMessage && (
-        <p
-          role="alert"
-          className="rounded-md border border-danger/20 bg-danger/10 p-3 text-sm text-danger"
-        >
-          {errorMessage}
-        </p>
-      )}
-
-      {successMessage && (
-        <p
-          role="status"
-          className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700"
-        >
-          {successMessage}
-        </p>
-      )}
+      <Alert className="p-3">{errorMessage}</Alert>
+      <Alert variant="success" className="p-3">
+        {successMessage}
+      </Alert>
 
       <SpecialityTable
         specialities={specialities}
@@ -188,9 +133,18 @@ function SpecialitiesPage() {
         pageSize={pageSize}
         total={total}
         totalPages={totalPages}
-        onPageChange={setPageIndex}
+        onPageChange={list.goToPage}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={setToDelete}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(toDelete)}
+        title="¿Eliminar especialidad?"
+        message={toDelete ? `Se eliminará la especialidad "${toDelete.name}".` : ''}
+        confirmLabel="Sí, eliminar"
+        onConfirm={confirmDelete}
+        onClose={closeModal}
       />
     </div>
   )

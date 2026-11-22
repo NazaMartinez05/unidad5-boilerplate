@@ -76,10 +76,9 @@ function AppointmentsTable({ appointments, total, page, totalPages, isLoading = 
                   </td>
 
                   <td className="px-6 py-3">
-                    <p className="text-sm font-semibold text-ink-strong">{patient?.fullName ?? EMPTY}</p>
-                    {patient?.dni && (
-                      <p className="text-xs text-ink-soft">DNI: {Number(patient.dni).toLocaleString('es-AR')}</p>
-                    )}
+                    <p className="text-sm text-ink">
+                      {patient?.dni ? `DNI: ${Number(patient.dni).toLocaleString('es-AR')}` : EMPTY}
+                    </p>
                   </td>
 
                   <td className="px-6 py-3">

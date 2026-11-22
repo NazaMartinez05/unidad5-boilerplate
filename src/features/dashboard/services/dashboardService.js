@@ -1,31 +1,10 @@
+import { getDoctors } from '../../doctors/services/doctorsService'
+import { getSpecialities } from '../../specialities/services/specialitiesService'
 
-import { apiClient } from '../../../services/apiClient'
+// Médicos (paginado, con búsqueda por nombre): same call as the doctors list
+export const getDashboardDoctors = getDoctors
 
-// Obtener médicos activos
-export async function getDashboardDoctors({
-  pageSize = 5,
-  pageIndex = 1,
-  name = '',
-} = {}) {
-  const response = await apiClient.get('/api/doctors', {
-    params: {
-      pageSize,
-      pageIndex,
-      ...(name ? { name } : {}),
-    },
-  })
-
-  return response.data
-}
-
-// Obtener cantidad de especialidades activas
-export async function getDashboardSpecialities() {
-  const response = await apiClient.get('/api/specialties', {
-    params: {
-      pageSize: 1,
-      pageIndex: 1,
-    },
-  })
-
-  return response.data
+// Cantidad de especialidades: a 1-item page is enough, only `total` is used
+export function getDashboardSpecialities() {
+  return getSpecialities({ pageSize: 1, pageIndex: 1 })
 }
