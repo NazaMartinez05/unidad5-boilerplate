@@ -19,4 +19,9 @@ export default defineConfig({
       },
     },
   },
+  // Unit tests (npm test): *.test.js(x) files next to the code they test
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.{js,jsx}'],
+  },
 })

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import Icon from '../../../components/atoms/Icon'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import DoctorForm from '../components/DoctorForm'
+import Alert from '../../../components/atoms/Alert'
 import { createDoctor, getAllDoctors, getAllSpecialities, updateDoctor } from '../services/doctorsService'
 
 // Sirve para las dos rutas:
@@ -88,11 +89,7 @@ function DoctorFormPage() {
         </div>
 
         <div className="p-6">
-          {errorMessage && (
-            <p role="alert" className="mb-5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-              {errorMessage}
-            </p>
-          )}
+          <Alert className="mb-5">{errorMessage}</Alert>
 
           {isLoading && <p className="text-sm text-ink-soft">Cargando...</p>}
 

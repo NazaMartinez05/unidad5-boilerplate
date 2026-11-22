@@ -1,41 +1,23 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../features/auth/hooks/useAuth'
+import { getInitials, getNameFromEmail } from '../../utils/text'
 import Icon from '../atoms/Icon'
-import { clearSession, getSession } from '../../services/session'
 
 const LINKS = [
   { to: '/patient-doctor', label: 'Reservar Turno' },
   { to: '/appointments', label: 'Mis Turnos' },
 ]
 
-// The backend does not return the patient's name: it is taken from the email
-// ("johnathan.doe@mail.com" -> "Johnathan Doe")
-function getDisplayName(email) {
-  const user = (email ?? '').split('@')[0]
-  const name = user
-    .split(/[._-]+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-  return name || 'Paciente'
-}
-
-const getInitials = (name) =>
-  name
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word.charAt(0))
-    .join('')
-    .toUpperCase()
-
 // Desktop: links inline. Mobile (< md): logo, avatar and a menu button.
 function PatientAppNavbar() {
   const navigate = useNavigate()
+  const { email, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const name = getDisplayName(getSession().email)
+  const name = getNameFromEmail(email)
 
   const handleLogout = () => {
-    clearSession()
+    logout()
     navigate('/patients/login', { replace: true })
   }
 

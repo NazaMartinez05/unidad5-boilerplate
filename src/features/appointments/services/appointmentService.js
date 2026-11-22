@@ -1,22 +1,22 @@
 import { apiClient } from '../../../services/apiClient'
+import { getAllDoctors } from '../../doctors/services/doctorsService'
+import { getAllSpecialities } from '../../specialities/services/specialitiesService'
 
 export const DEFAULT_PAGE_SIZE = 5
 
-// GET /api/specialties/allSpeciality -> [{ id, name, description }]
-// Returned as { specialityId, name }, the shape the filters use.
+// Specialities for the filter, as { specialityId, name } (the shape the filters use)
 export async function getSpecialities() {
-  const response = await apiClient.get('/api/specialties/allSpeciality')
-  return response.data.map((speciality) => ({
+  const specialities = await getAllSpecialities()
+  return specialities.map((speciality) => ({
     specialityId: speciality.id,
     name: speciality.name,
   }))
 }
 
-// GET /api/doctors/allDoctors -> [{ id, name, licenseNumber, isActive, speciality: { specialityId, name } }]
-// Returned as { doctorId, name, speciality: { specialityId, name } }.
+// Doctors for the filter, as { doctorId, name, speciality: { specialityId, name } }
 export async function getDoctors() {
-  const response = await apiClient.get('/api/doctors/allDoctors')
-  return response.data.map((doctor) => ({
+  const doctors = await getAllDoctors()
+  return doctors.map((doctor) => ({
     doctorId: doctor.id,
     name: doctor.name,
     speciality: {

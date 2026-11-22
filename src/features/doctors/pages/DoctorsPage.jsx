@@ -1,87 +1,56 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
+import Alert from '../../../components/atoms/Alert'
 import Badge from '../../../components/atoms/Badge'
+import ConfirmModal from '../../../components/organisms/ConfirmModal'
 import Icon from '../../../components/atoms/Icon'
 import TextInput from '../../../components/atoms/TextInput'
 import Pagination from '../../../components/molecules/Pagination'
+import { usePaginatedList } from '../../../hooks/usePaginatedList'
 import { getApiErrorMessage } from '../../../services/apiClient'
+import { getInitials } from '../../../utils/text'
 import { deleteDoctor, getDoctors } from '../services/doctorsService'
-
-const PAGE_SIZE = 10
 
 const linkButtonClass =
   'inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark'
 
 const iconButtonClass = 'inline-flex cursor-pointer rounded-md p-1.5 transition-colors'
 
-// "Elena Martínez" → "EM"
-const getInitials = (name) =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('')
-
 function DoctorsPage() {
-  const [doctors, setDoctors] = useState([])
-  const [total, setTotal] = useState(0)
-  const [pageIndex, setPageIndex] = useState(1)
+  // Pagination, search and loading live in the hook; the page renders
+  const list = usePaginatedList(getDoctors, { pageSize: 10 })
+  const { items: doctors, total, pageIndex, totalPages, isLoading, goToPage, reload } = list
+
   const [searchInput, setSearchInput] = useState('') // lo que se escribe en el buscador
-  const [search, setSearch] = useState('') // lo que realmente se busca
-  const [reloadKey, setReloadKey] = useState(0) // cambiarlo fuerza a recargar la lista
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
   const [searchError, setSearchError] = useState('')
-
-  // Trae los doctores cada vez que cambia la página, la búsqueda o se pide recargar
-  useEffect(() => {
-    getDoctors({ pageSize: PAGE_SIZE, pageIndex, name: search })
-      .then((page) => {
-        setDoctors(page.data)
-        setTotal(page.total)
-        setErrorMessage('')
-      })
-      .catch((error) => setErrorMessage(getApiErrorMessage(error)))
-      .finally(() => setIsLoading(false))
-  }, [pageIndex, search, reloadKey])
-
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-
-  const reload = () => {
-    setIsLoading(true)
-    setReloadKey((key) => key + 1)
-  }
+  const [deleteError, setDeleteError] = useState('')
+  const errorMessage = deleteError || list.error
 
   // Se busca al apretar Enter en el buscador
   const handleSearch = (event) => {
     event.preventDefault()
-    const text = searchInput.trim()
-    if (text !== '' && text.length < 3) {
-      setSearchError('Escribí al menos 3 letras para buscar.')
-      return
-    }
-    setSearchError('')
-    setPageIndex(1)
-    setSearch(text)
-    reload()
+    setDeleteError('')
+    setSearchError(list.applySearch(searchInput))
   }
 
-  const goToPage = (newPage) => {
-    setIsLoading(true)
-    setPageIndex(newPage)
-  }
+  // Borrado lógico (obligatorio según la consigna): the trash button opens the modal
+  const [toDelete, setToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const closeModal = useCallback(() => setToDelete(null), [])
 
-  // Borrado lógico (obligatorio según la consigna)
-  const handleDelete = async (doctor) => {
-    if (!window.confirm(`¿Eliminar a ${doctor.name}?`)) return
+  const confirmDelete = async () => {
+    setDeleteError('')
+    setIsDeleting(true)
     try {
-      await deleteDoctor(doctor.id)
+      await deleteDoctor(toDelete.id)
       // Si era el último de la página, volvemos a la anterior
       if (doctors.length === 1 && pageIndex > 1) goToPage(pageIndex - 1)
       else reload()
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error))
+      setDeleteError(getApiErrorMessage(error))
+    } finally {
+      setIsDeleting(false)
+      setToDelete(null)
     }
   }
 
@@ -126,11 +95,7 @@ function DoctorsPage() {
 
         {isLoading && <p className="px-5 pb-6 text-sm text-ink-soft">Cargando...</p>}
 
-        {!isLoading && errorMessage && (
-          <p role="alert" className="mx-5 mb-5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-            {errorMessage}
-          </p>
-        )}
+        {!isLoading && <Alert className="mx-5 mb-5">{errorMessage}</Alert>}
 
         {!isLoading && !errorMessage && doctors.length === 0 && (
           <p className="px-5 pb-6 text-sm text-ink-soft">No hay doctores para mostrar.</p>
@@ -193,7 +158,7 @@ function DoctorsPage() {
                           type="button"
                           title="Eliminar doctor"
                           aria-label={`Eliminar a ${doctor.name}`}
-                          onClick={() => handleDelete(doctor)}
+                          onClick={() => setToDelete(doctor)}
                           className={`${iconButtonClass} text-danger hover:bg-danger/10`}
                         >
                           <Icon name="trash" size={16} />
@@ -215,6 +180,16 @@ function DoctorsPage() {
           <Pagination page={pageIndex} totalPages={totalPages} onPageChange={goToPage} />
         </div>
       </section>
+
+      <ConfirmModal
+        isOpen={Boolean(toDelete)}
+        title="¿Eliminar doctor?"
+        message={toDelete ? `Se dará de baja a ${toDelete.name}. Sus turnos ya reservados no se modifican.` : ''}
+        confirmLabel="Sí, eliminar"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={closeModal}
+      />
     </div>
   )
 }

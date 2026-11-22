@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../features/auth/hooks/useAuth'
 import Brand from '../molecules/Brand'
 import NavItem from '../molecules/NavItem'
 import UserCard from '../molecules/UserCard'
@@ -16,12 +17,10 @@ const footerLinkClass =
 
 function Sidebar({ isOpen, onNavigate }) {
   const navigate = useNavigate()
+  const { logout } = useAuth()
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('role')
-    localStorage.removeItem('email')
-
+    logout()
     navigate('/admin/login', { replace: true })
   }
 

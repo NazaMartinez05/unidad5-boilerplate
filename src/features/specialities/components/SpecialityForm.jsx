@@ -3,6 +3,7 @@ import FormField from '../../../components/molecules/FormField'
 import TextInput from '../../../components/atoms/TextInput'
 import TextArea from '../../../components/atoms/TextArea'
 import Button from '../../../components/atoms/Button'
+import Alert from '../../../components/atoms/Alert'
 
 function SpecialityForm({
   name,
@@ -60,14 +61,7 @@ function SpecialityForm({
                   </FormField>
 
 
-        {errorMessage && (
-          <p
-            role="alert"
-            className="rounded-md border border-danger/20 bg-danger/10 p-3 text-sm text-danger"
-          >
-            {errorMessage}
-          </p>
-        )}
+        <Alert>{errorMessage}</Alert>
 
         <div className="flex flex-wrap justify-end gap-3 border-t border-line pt-5">
           <Button

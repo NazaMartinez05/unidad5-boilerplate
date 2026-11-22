@@ -1,19 +1,11 @@
-
 import { useState } from 'react'
-import { Outlet, Navigate } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import Sidebar from '../organisms/Sidebar'
 import Topbar from '../organisms/Topbar'
 
+// Layout of the admin panel. Access control lives in the router (ProtectedRoute).
 function AdminLayout() {
-  const token = localStorage.getItem('token')
-  const role = localStorage.getItem('role')
-
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  // Verificar autenticación y permisos
-  if (!token || role?.toUpperCase() !== 'ADMINISTRADOR') {
-    return <Navigate to="/admin/login" replace />
-  }
 
   const toggleMenu = () => setIsMenuOpen((open) => !open)
   const closeMenu = () => setIsMenuOpen(false)

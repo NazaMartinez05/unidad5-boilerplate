@@ -1,43 +1,13 @@
-import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Alert from '../../../components/atoms/Alert'
 import Button from '../../../components/atoms/Button'
 import Icon from '../../../components/atoms/Icon'
 import Select from '../../../components/atoms/Select'
 import Switch from '../../../components/atoms/Switch'
-import { getApiErrorMessage } from '../../../services/apiClient'
-import {
-  createAvailability,
-  getAllDoctors,
-  getDoctorAvailabilities,
-  updateAvailability,
-} from '../services/doctorsService'
-import { SLOT_MINUTES, summarizeSlots, toMinutes } from '../../../utils/schedule'
-
-// Los días como los espera el back (DayHelper acepta con y sin tilde)
-const DAYS = [
-  { value: 'LUNES', label: 'Lunes' },
-  { value: 'MARTES', label: 'Martes' },
-  { value: 'MIÉRCOLES', label: 'Miércoles' },
-  { value: 'JUEVES', label: 'Jueves' },
-  { value: 'VIERNES', label: 'Viernes' },
-  { value: 'SÁBADO', label: 'Sábado' },
-]
-
-// "MIÉRCOLES" → "MIERCOLES", para comparar sin importar tildes
-const normalize = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
-
-// Estado inicial: ningún día activo, horario sugerido de 08:00 a 16:00
-const emptySchedule = () =>
-  Object.fromEntries(DAYS.map((day) => [day.value, { enabled: false, startTime: '08:00', endTime: '16:00' }]))
-
-// "Elena Martínez" → "EM"
-const getInitials = (name) =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('')
+import { SLOT_MINUTES } from '../../../utils/schedule'
+import { getInitials } from '../../../utils/text'
+import { useDoctorSchedule } from '../hooks/useDoctorSchedule'
+import { SCHEDULE_DAYS } from '../utils/weeklySchedule'
 
 const timeInputClass =
   'w-full min-w-28 cursor-pointer rounded-md border border-field-line bg-surface px-2.5 py-2 text-sm text-ink-strong outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:border-line disabled:bg-canvas disabled:text-ink-soft/50'
@@ -55,116 +25,21 @@ const getTimeOptions = (current) =>
 
 function DoctorAvailabilitiesPage() {
   const navigate = useNavigate()
-
-  const [doctors, setDoctors] = useState([])
-  const [doctorId, setDoctorId] = useState('')
-  const [schedule, setSchedule] = useState(emptySchedule)
-  const [hasExisting, setHasExisting] = useState(false) // ¿ya tenía horarios? → PUT, si no → POST
-  const [isLoadingDoctors, setIsLoadingDoctors] = useState(true)
-  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
-
-  const selectedDoctor = doctors.find((doctor) => doctor.id === doctorId)
-
-  // 1) Al entrar: traer todos los doctores para el desplegable
-  useEffect(() => {
-    getAllDoctors()
-      .then(setDoctors)
-      .catch((error) => setErrorMessage(getApiErrorMessage(error)))
-      .finally(() => setIsLoadingDoctors(false))
-  }, [])
-
-  // 2) Al elegir un doctor: traer los horarios que ya tenga
-  useEffect(() => {
-    if (!doctorId) return
-    getDoctorAvailabilities(doctorId)
-      .then((availabilities) => {
-        const updated = emptySchedule()
-        // El back devuelve turnos con fecha: los agrupamos por día de la semana
-        const summary = summarizeSlots(availabilities)
-        DAYS.forEach((day) => {
-          const found = summary[normalize(day.value)]
-          if (found) {
-            updated[day.value] = { enabled: true, startTime: found.startTime, endTime: found.endTime }
-          }
-        })
-        setSchedule(updated)
-        setHasExisting(availabilities.length > 0)
-      })
-      .catch((error) => setErrorMessage(`No se pudieron cargar los horarios. ${getApiErrorMessage(error, '')}`))
-      .finally(() => setIsLoadingSchedule(false))
-  }, [doctorId])
-
-  const handleDoctorChange = (event) => {
-    setErrorMessage('')
-    setSuccessMessage('')
-    setSchedule(emptySchedule())
-    setHasExisting(false)
-    setIsLoadingSchedule(Boolean(event.target.value))
-    setDoctorId(event.target.value)
-  }
-
-  // Cambia un campo (enabled, startTime o endTime) de un día
-  const updateDay = (dayValue, field, value) => {
-    setSuccessMessage('')
-    setSchedule((current) => ({ ...current, [dayValue]: { ...current[dayValue], [field]: value } }))
-  }
-
-  const handleSave = async () => {
-    setErrorMessage('')
-    setSuccessMessage('')
-
-    if (!doctorId) {
-      setErrorMessage('Seleccione un profesional.')
-      return
-    }
-
-    const days = DAYS.filter((day) => schedule[day.value].enabled).map((day) => ({
-      day: day.value,
-      startTime: schedule[day.value].startTime,
-      endTime: schedule[day.value].endTime,
-    }))
-
-    // Validaciones antes de llamar al back
-    if (days.length === 0) {
-      setErrorMessage('Active al menos un día de atención.')
-      return
-    }
-    const invalid = days.find((day) => !day.startTime || !day.endTime || day.startTime >= day.endTime)
-    if (invalid) {
-      setErrorMessage(`Revise el ${invalid.day.toLowerCase()}: la hora de entrada debe ser anterior a la de salida.`)
-      return
-    }
-    // Turnos de 30 minutos: entrada y salida en punto o y media (08:00, 08:30...)
-    const offSlot = days.find(
-      (day) => toMinutes(day.startTime) % SLOT_MINUTES !== 0 || toMinutes(day.endTime) % SLOT_MINUTES !== 0,
-    )
-    if (offSlot) {
-      setErrorMessage(
-        `Revise el ${offSlot.day.toLowerCase()}: los horarios deben ser en punto o y media (rangos de ${SLOT_MINUTES} minutos).`,
-      )
-      return
-    }
-
-    setIsSaving(true)
-    try {
-      const payload = { doctorId, days }
-      const result = hasExisting ? await updateAvailability(payload) : await createAvailability(payload)
-      setHasExisting(true)
-      const slots = result?.days?.reduce((total, day) => total + (day.slotsGenerated ?? 0), 0)
-      setSuccessMessage(
-        slots !== undefined
-          ? `Disponibilidad guardada. Se generaron ${slots} turnos de 30 minutos para el resto del mes.`
-          : 'Disponibilidad guardada.',
-      )
-    } catch (error) {
-      setErrorMessage(getApiErrorMessage(error))
-    } finally {
-      setIsSaving(false)
-    }
-  }
+  // Data, validation and save live in the hook; the page renders
+  const {
+    doctors,
+    isLoadingDoctors,
+    doctorId,
+    selectedDoctor,
+    selectDoctor,
+    schedule,
+    updateDay,
+    isLoadingSchedule,
+    isSaving,
+    errorMessage,
+    successMessage,
+    save,
+  } = useDoctorSchedule()
 
   const doctorOptions = [
     { value: '', label: isLoadingDoctors ? 'Cargando...' : 'Seleccione un profesional' },
@@ -199,7 +74,7 @@ function DoctorAvailabilitiesPage() {
             <label htmlFor="doctorId" className="mb-2 block text-sm font-semibold text-ink-strong">
               Seleccionar Profesional
             </label>
-            <Select id="doctorId" options={doctorOptions} value={doctorId} onChange={handleDoctorChange} />
+            <Select id="doctorId" options={doctorOptions} value={doctorId} onChange={(event) => selectDoctor(event.target.value)} />
 
             {selectedDoctor && (
               <div className="mt-4 flex items-center gap-3 rounded-md bg-highlight p-3">
@@ -236,16 +111,10 @@ function DoctorAvailabilitiesPage() {
             </span>
           </div>
 
-          {errorMessage && (
-            <p role="alert" className="mx-5 mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-              {errorMessage}
-            </p>
-          )}
-          {successMessage && (
-            <p role="status" className="mx-5 mb-4 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              {successMessage}
-            </p>
-          )}
+          <Alert className="mx-5 mb-4">{errorMessage}</Alert>
+          <Alert variant="success" className="mx-5 mb-4">
+            {successMessage}
+          </Alert>
 
           {!doctorId ? (
             <p className="border-t border-line px-5 py-10 text-center text-sm text-ink-soft">
@@ -265,7 +134,7 @@ function DoctorAvailabilitiesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {DAYS.map((day) => {
+                  {SCHEDULE_DAYS.map((day) => {
                     const daySchedule = schedule[day.value]
                     return (
                       <tr key={day.value}>
@@ -326,7 +195,7 @@ function DoctorAvailabilitiesPage() {
             <Button variant="secondary" onClick={() => navigate('/doctors')}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={!doctorId || isLoadingSchedule || isSaving}>
+            <Button onClick={save} disabled={!doctorId || isLoadingSchedule || isSaving}>
               {isSaving ? 'Guardando...' : 'Guardar Disponibilidad'}
             </Button>
           </div>

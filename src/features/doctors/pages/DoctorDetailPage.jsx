@@ -5,6 +5,8 @@ import Badge from '../../../components/atoms/Badge'
 import { getApiErrorMessage } from '../../../services/apiClient'
 import { getAllDoctors, getDoctorAvailabilities } from '../services/doctorsService'
 import { summarizeSlots } from '../../../utils/schedule'
+import { getInitials } from '../../../utils/text'
+import Alert from '../../../components/atoms/Alert'
 
 const DAYS = [
   { value: 'LUNES', label: 'Lunes' },
@@ -15,15 +17,6 @@ const DAYS = [
   { value: 'SABADO', label: 'Sábado' },
 ]
 
-// "Elena Martínez" → "EM"
-const getInitials = (name) =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('')
-
 // Si el doctor no tiene horarios, el back responde 404: lo tomamos como "sin horarios"
 const loadAvailabilities = async (id) => {
   try {
@@ -31,7 +24,7 @@ const loadAvailabilities = async (id) => {
   } catch (error) {
     if (error.response?.status === 404) return []
     if (error.response?.status === 403) {
-      throw new Error('Su usuario no tiene permisos para consultar los horarios de este doctor.')
+      throw new Error('Su usuario no tiene permisos para consultar los horarios de este doctor.', { cause: error })
     }
     throw error
   }
@@ -88,11 +81,7 @@ function DoctorDetailPage() {
         <span className="font-semibold text-brand">Detalle del Doctor</span>
       </nav>
 
-      {errorMessage && (
-        <p role="alert" className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
-          {errorMessage}
-        </p>
-      )}
+      <Alert>{errorMessage}</Alert>
 
       {isLoading && <p className="text-sm text-ink-soft">Cargando...</p>}
 
